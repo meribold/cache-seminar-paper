@@ -15,7 +15,7 @@ MAKEFLAGS += --no-builtin-rules
 # Set the default goal.
 all: paper.pdf
 
-paper.pdf: array-sum/size-time.csv paper.tex
+paper.pdf: array-sum/size-time.csv paper.tex paper.bib
 	latexmk -pdf -shell-escape
 	makeglossaries paper
 	latexmk -pdf -shell-escape

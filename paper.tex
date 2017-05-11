@@ -13,6 +13,9 @@
 \usepackage{mathtools}      % Improved facilities for typesetting mathematical formulae
 \usepackage{dirtytalk}      % ...
 
+% Use ISO 8601, like a reasonable person.  See <https://tex.stackexchange.com/a/152394>.
+\usepackage[style=iso]{datetime2}
+
 % Source code listings with improved syntax highlighting
 \usepackage{minted}
 \usemintedstyle{pastie}
@@ -21,7 +24,9 @@
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 \setminted{bgcolor=bg}
 
-\usepackage{biblatex}
+% Keep using ISO 8601 consistently, like an even more reasonable person.  See
+% <https://tex.stackexchange.com/q/231208>.
+\usepackage[date=edtf, urldate=edtf]{biblatex}
 \addbibresource{paper.bib}
 
 \usepackage[xindy, toc, acronym, nomain]{glossaries} % Load after `hyperref`.
@@ -89,11 +94,6 @@ type of memory is not viable.  No signal can propagate faster than the speed of 
 Thus, every storage technology can only reach a finite amount of data within a desired
 access latency \cite[p.~2]{afmh}.
 
-% TODO: move this paragraph out of the introduction.
-% Hardware caches are managed by hardware directly.  They are generally opaque to the
-% operating system and other programs.  That is, software has no direct control over the
-% contents of a hardware cache.
-
 The most ubiquitous example for hardware caches is the hierarchy of
 % are the various levels (most commonly 2 or 3) of
 CPU caches that are found on almost all present-day CPUs.  They are designated L1 cache,
@@ -116,21 +116,58 @@ performance gains in this \article{}.
 % TODO: what about TLB?
 
 \section{Motivation} % So what?
-%    Three things Really Matter for performance. The first one is Algorithm, the second
+%    Three things Really Matter for performance.  The first one is Algorithm, the second
 %    one is your code being Non-Blocking, and the third one is Data Locality."
 %       -- http://ithare.com/c-performance-common-wisdoms-and-common-wisdoms/
 
-% We will see that
-Two algorithms solving the same problem with the same asymptotic complexity (in the same
-\(\Theta(g(n))\)) may differ in performance by two orders of magnitude~\cite[p.~2]{afmh}.
+% TODO: move this paragraph?
+Hardware caches are managed by hardware directly.  They are generally opaque to the
+operating system and other programs.  That is, software has no direct control over the
+contents of a hardware cache.
 
-% TODO: how and how much can we speed up our programs by considering their interactions
-% with CPU caches?
+% So what?  Why learn about hardware caches?  How much performance do I gain/lose
+% depending on how *cache-friendly* my algorithm/code is?
+
+% We will see that
+Despite this, two algorithms solving the same problem with the same asymptotic complexity
+(in the same \(\Theta(g(n))\)) may differ in performance by two orders of magnitude
+because of different \emph{memory access patterns}~\cite{bigos}.  We will see an example
+of this in section TODO.
+
+In a nutshell, hardware caches are ubiquitous but the performance improvements they
+provide are conditional.
+\begin{comment}
+   To use them effectively,
+   % To obtain optimal performance,
+   algorithms must be designed and implemented with the architecture
+   % design, structure, manner of functioning, inner workings, properties
+   of hardware caches in mind.
+\end{comment}
+Effective use of hardware caches requires knowledge about how they work.
+% their architecture.
+Algorithms must be designed and implemented observing this knowledge.
+% their interactions with hardware caches.
+
+% TODO: and *how* do I make effective use of hardware caches?
+
+% \section{Basic Principles}
+\section{Basic Concepts}
+% \section{Key Terms}
+% That sounds boring.
+
+\subsection{Spatial Locality}
+Data is loaded from bigger, slower memory into smaller, faster memory (e.g. from main
+memory into the CPU cache) in \emph{blocks}.
+
+Moving down the memory hierarchy, access latencies increase faster than the
+\emph{obtainable} bandwidth: \say{[w]e can still achieve large bandwidths by accessing
+many close-by bits together [...].  Access to large \emph{blocks} [emphasis added] of
+memory is almost as fast as access to a single bit},~\cite[p.~2]{afmh}.
 
 % TODO: move this.
-% Consider the program shown in \cref{lst:array-sum}.  It repeatedly loops over an array to
-% compute the sum of its elements.  Before exiting, it prints the CPU time spend summing the
-% array.
+% Consider the program shown in \cref{lst:array-sum}.  It repeatedly loops over an array
+% to compute the sum of its elements.  Before exiting, it prints the CPU time spend
+% summing the array.
 
 \begin{listing}
    \inputminted[firstline=3]{c}{array-sum/array-sum.c}
@@ -157,19 +194,7 @@ Two algorithms solving the same problem with the same asymptotic complexity (in 
    \label{fig:array-sum}
 \end{figure}
 
-See \cref{fig:array-sum}.  What's going on here?
-
-% \section{Basic Principles}
-% \section{Basic Concepts}
-\section{Key Terms}
-\subsection{Spatial Locality}
-Data is loaded from bigger, slower memory into smaller, faster memory (e.g. from main
-memory into the CPU cache) in \emph{blocks}.
-
-Moving down the memory hierarchy, access latencies increase faster than the
-\emph{obtainable} bandwidth: \say{[w]e can still achieve large bandwidths by accessing
-many close-by bits together [...].  Access to large \emph{blocks} [emphasis added] of
-memory is almost as fast as access to a single bit},~\cite[p.~2]{afmh}.
+% See \cref{fig:array-sum}.  What's going on here?
 
 \subsection{Temporal Locality}
 
@@ -177,6 +202,10 @@ memory is almost as fast as access to a single bit},~\cite[p.~2]{afmh}.
 
 \subsection{Cache Miss}
 % TODO: what happens when we miss?  How bad is it?  What about \gls{smt}?
+
+\subsection{Cache Line} % or Cache Block
+% On x86/x64, cache line is 64 bytes for many years now.
+%    -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/
 
 \subsection{External Memory Model}
 The \gls{emm} is a widely used

@@ -17,4 +17,7 @@
 *.xdy
 *.xml
 _minted-paper
-array-sum/size-time.csv
+array-sum/*.csv
+line-size/*.csv
+.stfolder
+.stignore

@@ -13,23 +13,40 @@
 \usepackage{mathtools}      % Improved facilities for typesetting mathematical formulae
 \usepackage{dirtytalk}      % ...
 
+% See <https://tex.stackexchange.com/q/10684/78512>.  TODO.
+\usepackage{enumitem}
+\setlist{noitemsep}
+
+% TODO.  See <https://tex.stackexchange.com/q/119513>.
+\crefname{appsec}{Appendix}{Appendices}
+
 % Use ISO 8601, like a reasonable person.  See <https://tex.stackexchange.com/a/152394>.
 \usepackage[style=iso]{datetime2}
+
+% TODO: will this just force LaTeX to make worse choices?
+% \usepackage[all]{nowidow}
 
 % Source code listings with improved syntax highlighting
 \usepackage{minted}
 \usemintedstyle{pastie}
 
-\usepackage{color}
+% Define a background color for `minted` listings.  See <http://ctan.org/pkg/minted> and
+% <https://tex.stackexchange.com/q/150369>.
+\usepackage{xcolor}
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 \setminted{bgcolor=bg}
+% Don't shade the background when using `mintinline`.
+\setmintedinline{bgcolor={}}
+
+% ...
+\usepackage[titletoc]{appendix}
 
 % Keep using ISO 8601 consistently, like an even more reasonable person.  See
 % <https://tex.stackexchange.com/q/231208>.
-\usepackage[date=edtf, urldate=edtf]{biblatex}
+\usepackage[date=edtf, urldate=edtf, seconds=true]{biblatex}
 \addbibresource{paper.bib}
 
-\usepackage[xindy, toc, acronym, nomain]{glossaries} % Load after `hyperref`.
+\usepackage[xindy, toc, acronym]{glossaries} % Load after `hyperref`.
 
 \makeglossaries
 
@@ -48,16 +65,61 @@
 \newacronym{tlb}{TLB}{translation lookaside buffer}
 \newacronym{ssd}{SSD}{solid-state drive}
 
-\newcommand{\article}{article} % report, paper?
+\newglossaryentry{l1d}
+{
+   name=\texttt{L1d},
+   description={},
+}
+
+\newglossaryentry{l1i}
+{
+   name=\texttt{L1i},
+   description={},
+}
+
+\newglossaryentry{l2}
+{
+   name=\texttt{L2},
+   description={},
+}
+
+\newglossaryentry{l3}
+{
+   name=\texttt{L3},
+   description={},
+}
+
+\newcommand*{\article}{article} % report, paper?
+
+% Define a command that takes exactly 2 arguments, the first one defaulting to `1`.  The
+% second argument should be a list of items separated by `,`.  The list item at the
+% position specified by the first argument in printed.  See
+% <https://tex.stackexchange.com/a/99271>,
+% <http://mirrors.ctan.org/macros/generic/listofitems/listofitems-en.pdf>, and
+% <https://tex.stackexchange.com/q/276697>.
+\usepackage{listofitems}
+\newcommand*{\alts}[2][1]{%
+   \setsepchar{,}%
+   \readlist*\arg{#2}%
+   \arg[#1]%
+}
 
 % Top matter {{{1
-\title{Algorithms for Hardware Caches}
+\title{Basics of Hardware Cache Optimization}
+% \title{Algorithms for Hardware Caches}
+% \title{Basics of CPU Cache Optimization}
+% \title{Basics of Optimizing for Hardware Caches}
+% \title{Fundamentals of Optimizing for Hardware Caches}
+% \title{Introduction to Optimizations for Hardware Caches}
+% \title{Optimizing for Hardware Caches}
+% \subtitle{The Basics}
 \author{Lukas Waymann}
 
 % Body {{{1
 \begin{document}
 \maketitle
-\newpage
+
+% \newpage
 
 \begin{abstract}
    % What?
@@ -66,9 +128,8 @@
    these hardware caches function.
 
    The abstract \gls{emm} for memory hierarchies is explained and a small selection of
-   algorithms developed for it
-   % analyzed under it
-   are explored mathematically and empirically.
+   algorithms \alts{developed for it, analyzed under it} are explored mathematically and
+   empirically.
 \end{abstract}
 \newpage
 
@@ -80,59 +141,53 @@
 \section{Introduction}
 % What is this paper about?  Why learn about them?  How much performance is at stake?
 
-% What are hardware caches?
-A hardware cache is a comparatively
-% relatively
-fast and small physical memory.  It stores a subset of the data present in slower, larger
-memory that is expected to be used again soon.  The purpose of this additional memory is
-to reduce the number of accesses to the underlying slower storage.
+% What are hardware caches?  Why caches?
+A hardware cache is a \alts{comparatively, relatively} fast and small physical memory.  It
+stores a subset of the data present in slower, larger memory that is expected to be used
+again soon.  The purpose of this additional memory is to reduce the number of accesses to
+the underlying slower storage.
 
-% Why caches?
-There are fundamental reasons that having one single, uniform
-% homogeneous
-type of memory is not viable.  No signal can propagate faster than the speed of light.
-Thus, every storage technology can only reach a finite amount of data within a desired
-access latency \cite[p.~2]{afmh}.
+% Hardware caches aren't going away.
+There are fundamental reasons that having one single, \alts{uniform, homogeneous} type of
+memory is not viable.  No signal can propagate faster than the speed of light.  Thus,
+every storage technology can only reach a finite amount of data within a desired access
+latency~\cite[2]{afmh}.
 
-The most ubiquitous example for hardware caches is the hierarchy of
-% are the various levels (most commonly 2 or 3) of
-CPU caches that are found on almost all present-day CPUs.  They are designated L1 cache,
-L2 cache, and so on, with L1 being the fastest and smallest level.  The underlying storage
-for CPU caches is the main memory.
+The most ubiquitous example for hardware caches \alts{is the hierarchy, are the various
+levels (most commonly 2 or 3)} of CPU caches that are found on almost all present-day
+CPUs.  They are designated L1 cache, L2 cache, and so on, with L1 being the fastest and
+smallest level.  The underlying storage for CPU caches is the main memory.
 
-There are more storage levels that comprise
-% constitute
-the \emph{memory hierarchy} of a computer along with CPU caches and main memory.  For
-example \glspl{hdd} and \glspl{ssd}. % Also: registers, internal buffers of HDDs and SSDs,
-                                     % (tapes?), ...
+There are more storage levels that \alts{comprise, constitute} the \emph{memory hierarchy}
+of a computer along with CPU caches and main memory.  For example \glspl{hdd} and
+\glspl{ssd}.
+% Also: registers, internal buffers of HDDs and SSDs, (tapes), ...
 % Focus on CPU caches.  Why?
 However, swapping to \glspl{hdd} and \glspl{ssd} continues to become somewhat less common
 as main memory sizes increase.  Even non-server systems can currently support 64 GiB of
 main memory, eliminating the need for swapping to disk under many workloads.
 
-I will focus on how to use CPU caches effectively and the resulting
-% enabled
+I will focus on how to use CPU caches effectively and the \alts{enabled, resulting}
 performance gains in this \article{}.
+
 % TODO: what about TLB?
 
 \section{Motivation} % So what?
-%    Three things Really Matter for performance.  The first one is Algorithm, the second
-%    one is your code being Non-Blocking, and the third one is Data Locality."
-%       -- http://ithare.com/c-performance-common-wisdoms-and-common-wisdoms/
+% > Three things Really Matter for performance.  The first one is Algorithm, the second
+% > one is your code being Non-Blocking, and the third one is Data Locality."
+%      -- http://ithare.com/c-performance-common-wisdoms-and-common-wisdoms/
 
-% TODO: move this paragraph?
 Hardware caches are managed by hardware directly.  They are generally opaque to the
 operating system and other programs.  That is, software has no direct control over the
 contents of a hardware cache.
 
 % So what?  Why learn about hardware caches?  How much performance do I gain/lose
-% depending on how *cache-friendly* my algorithm/code is?
-
-% We will see that
-Despite this, two algorithms solving the same problem with the same asymptotic complexity
-(in the same \(\Theta(g(n))\)) may differ in performance by two orders of magnitude
-because of different \emph{memory access patterns}~\cite{bigos}.  We will see an example
-of this in section TODO.
+% depending on how cache-friendly my algorithm/code is?
+\alts{Despite this, We will see that despite this}, two algorithms solving the same
+problem with the same asymptotic complexity (in the same \(\Theta(g(n))\)) may differ in
+performance by two orders of magnitude because of different \emph{memory access
+patterns} (\cref{sec:map})~\cite{bigos}.  We will see an example of this in
+\cref{sec:vvl}.
 
 In a nutshell, hardware caches are ubiquitous but the performance improvements they
 provide are conditional.
@@ -143,17 +198,230 @@ provide are conditional.
    % design, structure, manner of functioning, inner workings, properties
    of hardware caches in mind.
 \end{comment}
-Effective use of hardware caches requires knowledge about how they work.
-% their architecture.
-Algorithms must be designed and implemented observing this knowledge.
-% their interactions with hardware caches.
+Effective use of hardware caches requires knowledge about \alts{how they work, their
+architecture}.  Algorithms must be designed and implemented observing \alts{this
+knowledge, their interactions with hardware caches}.
 
-% TODO: and *how* do I make effective use of hardware caches?
+% How?
 
-% \section{Basic Principles}
+\section{Types of CPU Caches}
+% > Most modern desktop and server CPUs have at least three independent caches: an
+% > instruction cache to speed up executable instruction fetch, a data cache to speed up
+% > data fetch and store, and a translation lookaside buffer (TLB) used to speed up
+% > virtual-to-physical address translation for both executable instructions and data.
+%      -- https://en.wikipedia.org/wiki/CPU_cache#Overview
+% > There are three common types of CPU caches: ...
+%      -- Scott Meyers (talk at code::dive)
+Current x86 CPUs \alts{generally, typically, commonly} have three main types of caches:
+data caches, instruction caches, and \glspl{tlb}%
+~\cite[\href{https://youtu.be/WDIkqP4JbkE?t=11m07s}{11:07}]{scott-meyers-talk}.
+Some caches are used for data as well as instructions and are called \emph{unified}.%
+~\cite[20]{drepper2007}.
+\alts{{A processor may have multiple caches of each type, which}, {Multiple caches of each
+type may be present, and}} are organised into numerical \emph{levels}
+\alts{{starting at 1, the smallest and fastest level,},}
+based on their size and speed.
+% Each added level is bigger and slower than its predecessor.
+% The smallest and fastest is level 1.
+
+% TODO?  The reason to have multiple levels...
+
+% > Often there are separate L1 caches for instructions and data
+%      -- Algorithms for Memory Hierarchies, page 3
+% > Systems nowaeays have at-least two levels of cache
+%      -- Algorithms for Memory Hierarchies, page 172
+% > [T]he caches from L2 on are unified caches which contain both code and data
+%      -- Drepper, p. 31
+% > Later Intel models have shared L2 caches for dual-core processors.  For quad-core
+% > processors we have to deal with separate L2 caches for each pair of two cores.
+%      -- Drepper, p. 35
+
+% Terminology / Nomenclature.
+In practice, a \alts{currently, presently} representative%
+\footnote{%
+   % https://en.wikipedia.org/wiki/Bobcat_(microarchitecture)
+   E.g. for AMD Family 14h processors~\cite[30--32]{14h},
+   % https://en.wikipedia.org/wiki/List_of_AMD_CPU_microarchitectures
+   % https://en.wikipedia.org/wiki/Zen_(microarchitecture)
+   % 32 KiB L1d, 64 KiB L1i, 512 KiB L2, 8 to 16 MiB L3
+   AMD Zen (17h)~\cite{zen}, and
+   % https://en.wikipedia.org/wiki/Kaby_Lake
+   % https://en.wikipedia.org/wiki/Skylake_(microarchitecture)
+   % 32 KiB L1d, 32 KiB L1i, 256 KiB L2, 2 to 8 MiB L3
+   Intel Skylake desktop processors%
+   ~\cite[figure 2-1, table 2-4]{skylake}
+   % ~\cite[figure 2-1, \pno~2-2, table 2-4, \pno~2-6]{skylake}.
+   % ~\cite[{2-2}, {2-6}]{skylake}.
+   % <https://en.wikipedia.org/wiki/Bulldozer_(microarchitecture)> is too weird.
+}
+x86 cache hierarchy consists of:
+\begin{itemize}
+   % https://en.wikipedia.org/wiki/Cache_hierarchy#Shared_versus_private
+   \item Separate level 1 data and instruction caches of 32 to 64 KiB for each core
+      (denoted \gls{l1d} and \gls{l1i} by  \textcite[14--15]{drepper2007}).
+      % TODO?  Why have a separate instruction cache?
+      Machine instructions in \gls{l1i} are already decoded%
+      ~\cite[31, 56]{drepper2007}.
+      % ~\cite[14, 31, 56]{drepper2007}.
+   % \item A level 2 cache for \say{both code and data}~\cite[31]{drepper2007}.
+   \item A unified \gls{l2} cache of 256 to 512 KiB for each core.
+   \item Often a unified \gls{l3} cache of 2 to 16 MiB shared between all cores.
+   \item TODO: Some \glspl{tlb} I guess.
+\end{itemize}
+
+% \subsection{Access Times}
+% http://ithare.com/infographics-operation-costs-in-cpu-clock-cycles/
+% http://www.getitwriteonline.com/archive/040201hyphadj.htm
+\alts{Estimates, Order-of-magnitude estimates} of typical access latencies \alts[2]{are as
+follows, are given by \textcite{ithare-cycles}.}%
+\footnote{%
+   Intel~\cite[table 2-4]{skylake},
+   \textcites
+   % {ithare-paadl}{ithare-wisdoms}
+   [\href{https://youtu.be/WDIkqP4JbkE?t=17m52s}{17:52}, slide 18]{scott-meyers-talk}
+   [2--3, 171]{afmh}[16, 20--21]{drepper2007} all give comparable numbers for various
+   architectures.
+   % [\ppno~16, 20--21, fig. 3.10]{drepper2007}
+}
+
+\begin{center}
+   \begin{tabular}{ r | c c c c }
+             & \gls{l1d} & \gls{l2} & \gls{l3} & Main Memory \\ \hline
+      Cycles & 3--4      & 10--12   & 30--70   & 100--150
+   \end{tabular}
+\end{center}
+%
+% These are taken from~\textcite{ithare-cycles} but comparable numbers are given by
+
+% > [Instruction] cache is much less problematic than the data cache.
+%      -- Drepper, p. 31
+The biggest target for optimizations is the data cache.  \say{[Instruction] cache is much
+less problematic}~\cite[31]{drepper2007} and optimizations for data and instruction cache
+tend to improve \gls{tlb} usage as well%
+~\cite[\href{https://youtu.be/WDIkqP4JbkE?t=11m53s}{11:53}]{scott-meyers-talk}.
+
 \section{Basic Concepts}
-% \section{Key Terms}
-% That sounds boring.
+% \section{Basic Principles}
+% \section{Key Terms} % That sounds boring.
+Some architectural properties of hardware caches lead to important concepts for using them
+effectively.
+
+\subsection{Cache Line} % or Cache Block
+% https://en.wikipedia.org/wiki/CPU_cache#Cache_entries
+%
+% > On x86/x64, cache line is 64 bytes for many years now.
+%      -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+% > In early caches these lines were 32 bytes long; nowadays the norm is 64 bytes.
+%      -- Drepper, p. 15
+% > It is not possible for a cache to hold partial cache lines.
+%      -- Drepper, p. 16
+\emph{Cache lines} or \emph{cache blocks} are the unit of data transfer between main
+memory and cache.  They have a fixed size, which has been \say{64 bytes for many years} on
+x86/x64 CPUs~\cites{ithare-paadl}[\href{https://youtu.be/WDIkqP4JbkE?t=21m41s}{21:41}]
+{scott-meyers-talk}.%
+\footnote{%
+% > The original Pentium 4 processor also had an eight-way set associative L2 integrated
+% > cache 256 KB in size, with 128-byte cache blocks.
+%      -- https://en.wikipedia.org/wiki/CPU_cache#Example
+% TODO: what about the block size of main memory?  Should it be the same?
+Line sizes aren't \emph{necessarily} \alts{identical, homogenous} among a CPU's caches.
+The Intel Pentium 4 processor had an \texttt{L1d} cache with \say{64 bytes per cache
+line}~\cite[p.~9]{pentium4} but an \texttt{L2} cache with \say{128 bytes per cache
+line}~\cite[p.~11]{pentium4}.}
+\begin{comment}
+   \multiplefootnoteseparator%
+   % See <https://tex.stackexchange.com/a/71015>.
+   \footnote{This can also be checked on the command line:
+   \mintinline{bash}{cat /proc/cpuinfo | grep cache_alignment}}
+\end{comment}
+% > It means that as soon as you've accessed any single byte in a cache line, all the
+% > other 63 bytes are already in L1 cache
+%      -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+\alts{%
+   This means accessing a single uncached 32-bit integer entails loading another 60
+   adjacent bytes.,
+   {This means when a single byte has to be loaded, another 63 adjacent bytes will be as
+   well.},
+   {When, for example, accessing a single byte that isn't already cached, another 63
+   adjacent bytes will be loaded.}
+}
+% Even when compiling C++ for 64-bit systems, `int` is typically 32-bit.
+
+My laptop's AMD E-450 CPU is no exception and both of its data caches have 64-byte cache
+lines.\footnote{\Cref{app:cpuinfo} explains how to obtain this information.}
+% \begin{minted}[gobble=3]{bash}
+%    $ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
+%    64
+%    64
+% \end{minted}
+%stopzone
+% \footnote{%
+%    \mintinline{bash}!$ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE!\\
+%    %stopzone
+%    \noindent\mintinline{bash}!64!\\
+%    \noindent\mintinline{bash}!64!
+% }
+We can verify this quite easily.  Consider \cref{lst:line-size}.  It loops over an array
+with an increment given at compile time as \texttt{STEP} and measures the processor time.
+The results for different values of \texttt{STEP} are plotted in \cref{fig:line-size}.
+% Starting from a step size of 16, the time roughly halves every time the step size is
+% doubled.  For the first 4 step sizes however, it is almost constant.
+As expected, the time roughly halves whenever the step size is doubled --- but only from a
+step size of 16.  For the first 4 step sizes, it is almost constant.
+
+% The reason why the loops take the same amount of time has to do with memory.  The
+% running time of these loops is dominated by the memory accesses to the array, not by the
+% integer multiplications.
+%    -- https://igoro.com/archive/gallery-of-processor-cache-effects/
+This is because the run times are \alts{primarily due to, dominated by} memory accesses.
+Up to a step size of 8, every 64-byte line has to be loaded.  At 16, the values we modify
+are 128 bytes apart,%
+\footnote{16 \texttt{int64\_t} values of 8 bytes each}
+so every other cache line is skipped.  At 32, three out of four cache lines are skipped,
+and so on~\cite[cf.][example 2]{gallery}.
+
+\begin{listing}
+   \inputminted[firstline=27]{c}{line-size/line-size.c}
+   \caption{Loop over \mintinline{text}{array} with increment \mintinline{text}{STEP}}
+   \label{lst:line-size}
+\end{listing}
+
+\begin{figure}
+   \centering
+   \begin{tikzpicture}
+      \datavisualization
+      [scientific axes=clean,
+       x axis={logarithmic,
+               ticks={major={at={1 as \textbf{1}, 2 as \textbf{2}, 4 as \textbf{4},
+                                 8 as \textbf{8}, 16, 64, 256, 1024}},
+                      minor={at={32, 128, 512}}},
+               label={Step size}, length=0.8\textwidth},
+       y axis={logarithmic,
+               % ticks={major={at={4, 16, 64, 256}}, minor={at={8, 32, 128}}},
+               % ticks={major={at={6, 12, 24, 48, 92, 184}}},
+               ticks={major={at={5, 10, 20, 40, 80, 160, 320}}},
+               label={Processor time (ms)}, length=6cm},
+       visualize as scatter,
+       scatter={style={mark=*, mark options={scale=.65}}}]
+         % See <https://tex.stackexchange.com/q/198323>.
+         data [read from file=line-size/line-size.csv, separator=\space];
+   \end{tikzpicture}
+   \caption{Processor times for running \cref{lst:line-size}}
+   \label{fig:line-size}
+\end{figure}
+
+\subsection{Prefetching}
+% http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+% http://ithare.com/c-for-games-performance-allocations-and-data-locality/2/
+% https://en.wikipedia.org/wiki/Cache_prefetching
+\emph{Cache prefetching} is a technique by which CPUs recognize predictable access
+patterns (for instance sequential access to an array)... TODO
+
+\subsection{Associativity}
+% https://en.wikipedia.org/wiki/CPU_cache#Associativity
+
+\subsection{Cache Hits and Misses}
+% TODO: what happens when we miss?  How bad is it?  What about \gls{smt}?
 
 \subsection{Spatial Locality}
 Data is loaded from bigger, slower memory into smaller, faster memory (e.g. from main
@@ -162,15 +430,32 @@ memory into the CPU cache) in \emph{blocks}.
 Moving down the memory hierarchy, access latencies increase faster than the
 \emph{obtainable} bandwidth: \say{[w]e can still achieve large bandwidths by accessing
 many close-by bits together [...].  Access to large \emph{blocks} [emphasis added] of
-memory is almost as fast as access to a single bit},~\cite[p.~2]{afmh}.
+memory is almost as fast as access to a single bit},~\cite[2]{afmh}.
 
 % TODO: move this.
 % Consider the program shown in \cref{lst:array-sum}.  It repeatedly loops over an array
 % to compute the sum of its elements.  Before exiting, it prints the CPU time spend
 % summing the array.
 
+\subsection{Temporal Locality}
+TODO~\cite{drepper2007}.
+
+\subsection{Memory Access Pattern}
+\label{sec:map}
+
+\section{Example: \texttt{std::vector} vs. \texttt{std::list}}
+\label{sec:vvl}
+
+% \section{Cache Replacement Policies} % Eviction Policies/Strategies/Algorithms
+% https://en.wikipedia.org/wiki/Cache_replacement_policies
+
+\section{External Memory Model}
+The \gls{emm} is a widely used
+% TODO: is it?
+extension of the \gls{ram} model.
+
 \begin{listing}
-   \inputminted[firstline=3]{c}{array-sum/array-sum.c}
+   \inputminted[firstline=8]{c}{array-sum/array-sum.c}
    \caption{This is C code}
    \label{lst:array-sum}
 \end{listing}
@@ -196,21 +481,66 @@ memory is almost as fast as access to a single bit},~\cite[p.~2]{afmh}.
 
 % See \cref{fig:array-sum}.  What's going on here?
 
-\subsection{Temporal Locality}
+\section{Cache-Oblivious Algorithms} % Cache-Oblivious Model
 
-\subsection{Cache Hit}
+\section{Parallel Computing}
 
-\subsection{Cache Miss}
-% TODO: what happens when we miss?  How bad is it?  What about \gls{smt}?
+\subsection{Cache Coherence} % Coherence or coherency?
+% https://en.wikipedia.org/wiki/Cache_coherence
+% Dirty.  Invalid.
 
-\subsection{Cache Line} % or Cache Block
-% On x86/x64, cache line is 64 bytes for many years now.
-%    -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+\subsection{False Sharing}
 
-\subsection{External Memory Model}
-The \gls{emm} is a widely used
-% TODO: is it?)
-extension of the \gls{ram} model.
+\clearpage
+% \appendix
+\begin{appendices}
+% See <https://tex.stackexchange.com/q/119513>.
+\crefalias{section}{appsec}
+
+\section{Reading Information About the CPU}
+\label{app:cpuinfo}
+% https://stackoverflow.com/q/7281699
+% https://unix.stackexchange.com/q/167038
+% https://superuser.com/q/55776
+There are many ways to display information about the processor(s) the operating system is
+running on.  Among others, the \mintinline{text}{lscpu(1)} and
+\mintinline{text}{getconf(1)} programs and the \mintinline{text}{/proc/cpuinfo}
+pseudo-file on Linux.  This is \alts{how I checked, what I used to check} my CPU's cache
+line sizes, for example:
+\begin{minted}[gobble=3]{bash}
+   $ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
+   64
+   64
+\end{minted}
+%stopzone
+
+\section{TODO: Measuring Stuff}
+
+\begin{comment}
+\section{Disabling the Prefetcher}
+My initial results from from running \cref{lst:array-sum} were quite different.  See TODO.
+
+TODO: I installed \texttt{msr-tools} and OProfile.
+% This seems to work.  It did affect performance.
+\begin{minted}[gobble=3]{bash}
+   $ sudo modprobe msr
+   $ sudo rdmsr -a 0xC0011022
+   600001800000000
+   600001800000000
+   $ sudo wrmsr -a 0xC0011022 0x600001800002000
+   $ sudo rdmsr -a -f '13:13' 0xC0011022
+   1
+   1
+   $ sudo rdmsr -a 0xC0011022
+   600001800002000
+   600001800002000
+\end{minted}
+%stopzone
+I think resetting the MSR to enable hardware prefetches doesn't work.  To get the same
+benchmmark results as before tweaking it, I have to reboot.
+\end{comment}
+
+\end{appendices}
 
 \clearpage
 

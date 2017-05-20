@@ -1,7 +1,7 @@
 @book{afmh,
-   address   = {Berlin, Heidelberg},
    editor    = {Meyer, Ulrich and Sanders, Peter and Sibeyn, Jop},
    isbn      = {3-540-00883-7},
+   location  = {Berlin and Heidelberg},
    publisher = {Springer-Verlag},
    series    = {Lecture Notes in Computer Science},
    subtitle  = {Advanced Lectures},
@@ -9,26 +9,144 @@
    year      = {2003},
 }
 
+@online{ithare-paadl,
+   author  = {Ignatchenko, Sergey},
+   date    = {2016-05-23},
+   title   = {C++ for Games: Performance, Allocations and Data Locality},
+   url     = {http://ithare.com/c-for-games-performance-allocations-and-data-locality/},
+   urldate = {2017-05-11},
+}
+
+@online{ithare-wisdoms,
+   author  = {Ignatchenko, Sergey},
+   date    = {2016-05-30},
+   title   = {C++ Performance: Common Wisdoms and Common “Wisdoms”},
+   url     = {http://ithare.com/c-performance-common-wisdoms-and-common-wisdoms/},
+   urldate = {2017-05-20},
+}
+
 @article{bigos,
    author    = {Ignatchenko, Sergey},
    date      = {2016-08},
+   file      = {https://accu.org/var/uploads/journals/Overload134.pdf#page=6},
    issn      = {1354--3172},
    journal   = {Overload},
    note      = {Big-O notation is often used to compare algorithms.  Sergey Ignatchenko
                 reminds us that asymptotic limits might not be generally applicable.},
    number    = {134},
    pages     = {4--7},
-   pdf       = {https://accu.org/var/uploads/journals/Overload134.pdf#page=6},
    publisher = {ACCU},
    title     = {Some Big-Os are Bigger Than Others},
    url       = {https://accu.org/index.php/journals/2268},
    urldate   = {2017-05-11},
 }
 
-@online{bigos2,
-   author    = {Ignatchenko, Sergey},
-   date      = {2017-02-21},
-   title     = {Some Big-Os are Bigger Than Others},
-   url       = {http://ithare.com/some-big-os-are-bigger-than-others/},
-   urldate   = {2017-05-11},
+@online{ithare-bigos,
+   author  = {Ignatchenko, Sergey},
+   date    = {2017-02-21},
+   title   = {Some Big-Os are Bigger Than Others},
+   url     = {http://ithare.com/some-big-os-are-bigger-than-others/},
+   urldate = {2017-05-11},
+}
+
+@online{ithare-cycles,
+   author  = {Ignatchenko, Sergey},
+   date    = {2016-09-12},
+   title   = {Infographics: Operation Costs in CPU Clock Cycles},
+   url     = {http://ithare.com/infographics-operation-costs-in-cpu-clock-cycles/},
+   urldate = {2017-05-19},
+}
+
+@online{gallery,
+   author  = {Ostrovsky, Igor},
+   date    = {2010-01-19},
+   title   = {Gallery of Processor Cache Effects},
+   url     = {https://igoro.com/archive/gallery-of-processor-cache-effects/},
+   urldate = {2017-05-15},
+}
+
+@online{zen,
+   organization = {AMD},
+   title        = {The “Zen” Core Architecture},
+   url          = {https://www.amd.com/en-gb/innovations/software-technologies/zen-cpu#Microarchitecture},
+   urldate      = {2017-05-19},
+}
+
+% http://udrepper.livejournal.com/19557.html
+% https://lwn.net/Articles/250967/
+% https://en.wikipedia.org/wiki/LWN.net
+% https://people.redhat.com/drepper/cpumemory.pdf
+% https://www.akkadia.org/drepper/cpumemory.pdf
+% https://scholar.google.com/scholar?cluster=12331297869318119122
+% http://stackoverflow.com/q/8126311
+% https://news.ycombinator.com/item?id=3919429
+@booklet{drepper2007,
+   author       = {Drepper, Ulrich},
+   date         = {2007-11-21},
+   editor       = {Corbet, Jonathan},
+   origdate     = {2007-09-21/2007-11-14},
+   pagetotal    = {114},
+   publisher    = {LWN.net},
+   title        = {What Every Programmer Should Know About Memory},
+   url          = {https://people.redhat.com/drepper/cpumemory.pdf},
+   urldate      = {2017-05-15},
+   version      = {1.0},
+ % howpublished = {First published at LWN.net},
+ % howpublished = {Red Hat, Inc.},
+}
+
+% A version given slightly later is at <https://vimeo.com/97337258>.  See
+% <https://scholar.google.com/scholar?cluster=14059030639791738114> for lots of PDFs for
+% the talk given on different occasions.
+@unpublished{scott-meyers-talk,
+   author       = {Meyers, Scott},
+   date         = {2014-11-05},
+   file         = {http://www.aristeia.com/TalkNotes/codedive-CPUCachesHandouts.pdf},
+   howpublished = {Talk given at the code::dive conference},
+   location     = {Hala Stulecia, Wrocław, Poland},
+   note         = {\url{http://codedive.pl/index/year2014}},
+   title        = {CPU Caches and Why You Care},
+   url          = {https://youtu.be/WDIkqP4JbkE},
+   urldate      = {2017-05-13},
+}
+
+% https://en.wikipedia.org/wiki/Intel_Technology_Journal
+% http://www.intel.com/content/www/us/en/research/intel-technology-journal/intel-technology-journal.html
+% http://www.intel.com/content/www/us/en/research/intel-technology-journal/intel-technology-journal-archive.html
+% http://www.intel.com/content/www/us/en/research/intel-technology-journal/2001-volume-05-issue-01-intel-technology-journal.html
+% http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.14.2991
+%
+% See <https://tex.stackexchange.com/q/354759> for a discussion of biblatex's `number` and
+% `issue` entry fiels.
+@article{pentium4,
+   author  = {Glenn Hinton and Dave Sager and Mike Upton and Darrell Boggs and Doug
+              Carmean and Alan Kyker and Patrice Roussel},
+   date    = {2001},
+   issue   = {Q1},
+   journal = {Intel Technology Journal},
+   number  = {1},
+   title   = {The Microarchitecture of the Pentium\textsuperscript{®} 4 Processor},
+   url     = {http://www.ecs.umass.edu/ece/koren/ece568/papers/Pentium4.pdf},
+   urldate = {2017-05-13},
+   volume  = {5},
+}
+
+@manual{14h,
+   date         = {2012-02-17},
+   organization = {AMD},
+   pagetotal    = {470},
+   title        = {BIOS and Kernel Developer’s Guide (BKDG) for AMD Family 14h Models
+                   00h-0Fh Processors},
+   url          = {https://support.amd.com/TechDocs/43170_14h_Mod_00h-0Fh_BKDG.pdf},
+   version      = {3.13},
+}
+
+% https://google.com/search?q=intel+skylake+architecture
+@manual{skylake,
+   date         = {2016-06},
+   organization = {Intel},
+   pagetotal    = {672},
+   title        = {Intel\textsuperscript{®} 64 and IA-32 Architectures Optimization
+                   Reference Manual},
+   url          = {https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-optimization-manual.pdf},
 }

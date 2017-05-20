@@ -15,15 +15,22 @@ MAKEFLAGS += --no-builtin-rules
 # Set the default goal.
 all: paper.pdf
 
-paper.pdf: array-sum/size-time.csv paper.tex paper.bib
+paper.pdf: paper.tex paper.bib array-sum/size-time.csv line-size/line-size.csv
 	latexmk -pdf -shell-escape
 	makeglossaries paper
 	latexmk -pdf -shell-escape
 
+# Don't optimize?
+line-size/line-size.csv: line-size/line-size.c
+	echo 'x y' > '$@'
+	for ((i=0; i<=10; i=i+1)); do \
+	   gcc -O2 -DSTEP=$$((2**i)) '$<' && ./a.out >> '$@'; \
+	done
+
 array-sum/size-time.csv: array-sum/array-sum.c
 	echo 'x y' > '$@'
 	for ((i=0; i<=96; i+=1)); do \
-	   gcc -DSIZE=$$((i*1024)) -O2 '$<' && { ./a.out | head -1 >> '$@';}; \
+	   gcc -O2 -DSIZE=$$((i*1024)) '$<' && { ./a.out | head -1 >> '$@';}; \
 	done
 
 clean:

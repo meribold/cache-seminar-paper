@@ -36,5 +36,6 @@ array-sum/size-time.csv: array-sum/array-sum.c
 
 clean:
 	latexmk -C
+	rm paper.{acn,acr,alg,bbl,glg,glo,gls,run.xml,xdy}
 
 # vim: tw=90 ts=8 sts=-1 sw=3 noet

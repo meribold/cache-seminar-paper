@@ -49,7 +49,7 @@
 \usepackage[xindy, toc, acronym]{glossaries} % Load after `hyperref`.
 
 \makeglossaries
-\loadglsentries{glossary}
+\loadglsentries{tex/glossary}
 
 \usepackage{tikz}
 \usetikzlibrary{datavisualization}
@@ -108,10 +108,10 @@
 
 \glsresetall % Reset the use status of all acronyms.
 
-\input{intro}
-\input{motivation}
-\input{types}
-\input{basic-concepts}
+\input{tex/intro}
+\input{tex/motivation}
+\input{tex/types}
+\input{tex/basic-concepts}
 
 \section{Example: \texttt{std::vector} vs. \texttt{std::list}}
 \label{sec:vvl}
@@ -166,7 +166,7 @@ extension of the \gls{ram} model.
 \begin{appendices}
    % See <https://tex.stackexchange.com/q/119513>.
    \crefalias{section}{appsec}
-   \input{appendices}
+   \input{tex/appendices}
 \end{appendices}
 
 \clearpage

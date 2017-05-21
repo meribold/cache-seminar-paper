@@ -17,10 +17,11 @@ all: paper.pdf
 
 paper.pdf: paper.tex paper.bib array-sum/size-time.csv line-size/line-size.csv
 	latexmk -pdf -shell-escape $<
-	makeglossaries paper
+	makeglossaries $(basename $<)
+	@# makeglossaries -d $(CURDIR) $(basename $<)
+	@# makeglossaries $(basename $(notdir $<))
 	latexmk -pdf -shell-escape $<
 
-# Don't optimize?
 line-size/line-size.csv: line-size/line-size.c
 	echo 'x y' > '$@'
 	for ((i=0; i<=10; i=i+1)); do \
@@ -34,5 +35,6 @@ array-sum/size-time.csv: array-sum/array-sum.c
 	done
 
 clean:
+	latexmk -C
 
 # vim: tw=90 ts=8 sts=-1 sw=3 noet

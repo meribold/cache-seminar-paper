@@ -1,0 +1,97 @@
+\section{Types of CPU Caches}
+% > Most modern desktop and server CPUs have at least three independent caches: an
+% > instruction cache to speed up executable instruction fetch, a data cache to speed up
+% > data fetch and store, and a translation lookaside buffer (TLB) used to speed up
+% > virtual-to-physical address translation for both executable instructions and data.
+%      -- https://en.wikipedia.org/wiki/CPU_cache#Overview
+% > There are three common types of CPU caches: ...
+%      -- Scott Meyers (talk at code::dive)
+Current x86 CPUs \alts{generally, typically, commonly} have three main types of caches:
+data caches, instruction caches, and \glspl{tlb}%
+~\cite[\href{https://youtu.be/WDIkqP4JbkE?t=11m07s}{11:07}]{scott-meyers-talk}.
+Some caches are used for data as well as instructions and are called \emph{unified}.%
+~\cite[20]{drepper2007}.
+\alts{{A processor may have multiple caches of each type, which}, {Multiple caches of each
+type may be present, and}} are organised into numerical \emph{levels}
+\alts{{starting at 1, the smallest and fastest level,},}
+based on their size and speed.
+% Each added level is bigger and slower than its predecessor.
+% The smallest and fastest is level 1.
+
+% TODO?  The reason to have multiple levels...
+
+% > Often there are separate L1 caches for instructions and data
+%      -- Algorithms for Memory Hierarchies, page 3
+% > Systems nowaeays have at-least two levels of cache
+%      -- Algorithms for Memory Hierarchies, page 172
+% > [T]he caches from L2 on are unified caches which contain both code and data
+%      -- Drepper, p. 31
+% > Later Intel models have shared L2 caches for dual-core processors.  For quad-core
+% > processors we have to deal with separate L2 caches for each pair of two cores.
+%      -- Drepper, p. 35
+
+% Terminology / Nomenclature.
+In practice, a \alts{currently, presently} representative%
+\footnote{%
+   % https://en.wikipedia.org/wiki/Bobcat_(microarchitecture)
+   E.g. for AMD Family 14h processors~\cite[30--32]{14h},
+   % https://en.wikipedia.org/wiki/List_of_AMD_CPU_microarchitectures
+   % https://en.wikipedia.org/wiki/Zen_(microarchitecture)
+   % 32 KiB L1d, 64 KiB L1i, 512 KiB L2, 8 to 16 MiB L3
+   AMD Zen (17h)~\cite{zen}, and
+   % https://en.wikipedia.org/wiki/Kaby_Lake
+   % https://en.wikipedia.org/wiki/Skylake_(microarchitecture)
+   % 32 KiB L1d, 32 KiB L1i, 256 KiB L2, 2 to 8 MiB L3
+   Intel Skylake desktop processors%
+   ~\cite[figure 2-1, table 2-4]{skylake}
+   % ~\cite[figure 2-1, \pno~2-2, table 2-4, \pno~2-6]{skylake}.
+   % ~\cite[{2-2}, {2-6}]{skylake}.
+   % <https://en.wikipedia.org/wiki/Bulldozer_(microarchitecture)> is too weird.
+}
+x86 cache hierarchy consists of:
+\begin{itemize}
+   % https://en.wikipedia.org/wiki/Cache_hierarchy#Shared_versus_private
+   \item Separate level 1 data and instruction caches of 32 to 64 KiB for each core
+      (denoted \gls{l1d} and \gls{l1i} by  \textcite[14--15]{drepper2007}).
+      % TODO?  Why have a separate instruction cache?
+      Machine instructions in \gls{l1i} are already decoded%
+      ~\cite[31, 56]{drepper2007}.
+      % ~\cite[14, 31, 56]{drepper2007}.
+   % \item A level 2 cache for \say{both code and data}~\cite[31]{drepper2007}.
+   \item A unified \gls{l2} cache of 256 to 512 KiB for each core.
+   \item Often a unified \gls{l3} cache of 2 to 16 MiB shared between all cores.
+   \item TODO: Some \glspl{tlb} I guess.
+\end{itemize}
+
+% \subsection{Access Times}
+% http://ithare.com/infographics-operation-costs-in-cpu-clock-cycles/
+% http://www.getitwriteonline.com/archive/040201hyphadj.htm
+\alts{Estimates, Order-of-magnitude estimates} of typical access latencies \alts[2]{are as
+follows, are given by \textcite{ithare-cycles}.}%
+\footnote{%
+   Intel~\cite[table 2-4]{skylake},
+   \textcites
+   % {ithare-paadl}{ithare-wisdoms}
+   [\href{https://youtu.be/WDIkqP4JbkE?t=17m52s}{17:52}, slide 18]{scott-meyers-talk}
+   [2--3, 171]{afmh}[16, 20--21]{drepper2007} all give comparable numbers for various
+   architectures.
+   % [\ppno~16, 20--21, fig. 3.10]{drepper2007}
+}
+
+\begin{center}
+   \begin{tabular}{ r | c c c c }
+             & \gls{l1d} & \gls{l2} & \gls{l3} & Main Memory \\ \hline
+      Cycles & 3--4      & 10--12   & 30--70   & 100--150
+   \end{tabular}
+\end{center}
+%
+% These are taken from~\textcite{ithare-cycles} but comparable numbers are given by
+
+% > [Instruction] cache is much less problematic than the data cache.
+%      -- Drepper, p. 31
+The biggest target for optimizations is the data cache.  \say{[Instruction] cache is much
+less problematic}~\cite[31]{drepper2007} and optimizations for data and instruction cache
+tend to improve \gls{tlb} usage as well%
+~\cite[\href{https://youtu.be/WDIkqP4JbkE?t=11m53s}{11:53}]{scott-meyers-talk}.
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

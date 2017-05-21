@@ -1,0 +1,35 @@
+\section{Introduction}
+% What is this paper about?  Why learn about them?  How much performance is at stake?
+
+% What are hardware caches?  Why caches?
+A hardware cache is a \alts{comparatively, relatively} fast and small physical memory.  It
+stores a subset of the data present in slower, larger memory that is expected to be used
+again soon.  The purpose of this additional memory is to reduce the number of accesses to
+the underlying slower storage.
+
+% Hardware caches aren't going away.
+There are fundamental reasons that having one single, \alts{uniform, homogeneous} type of
+memory is not viable.  No signal can propagate faster than the speed of light.  Thus,
+every storage technology can only reach a finite amount of data within a desired access
+latency~\cite[2]{afmh}.
+
+The most ubiquitous example for hardware caches \alts{is the hierarchy, are the various
+levels (most commonly 2 or 3)} of CPU caches that are found on almost all present-day
+CPUs.  They are designated L1 cache, L2 cache, and so on, with L1 being the fastest and
+smallest level.  The underlying storage for CPU caches is the main memory.
+
+There are more storage levels that \alts{comprise, constitute} the \emph{memory hierarchy}
+of a computer along with CPU caches and main memory.  For example \glspl{hdd} and
+\glspl{ssd}.
+% Also: registers, internal buffers of HDDs and SSDs, (tapes), ...
+% Focus on CPU caches.  Why?
+However, swapping to \glspl{hdd} and \glspl{ssd} continues to become somewhat less common
+as main memory sizes increase.  Even non-server systems can currently support 64 GiB of
+main memory, eliminating the need for swapping to disk under many workloads.
+
+I will focus on how to use CPU caches effectively and the \alts{enabled, resulting}
+performance gains in this \article{}.
+
+% TODO: what about TLB?
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

@@ -1,0 +1,33 @@
+\section{Motivation} % So what?
+% > Three things Really Matter for performance.  The first one is Algorithm, the second
+% > one is your code being Non-Blocking, and the third one is Data Locality."
+%      -- http://ithare.com/c-performance-common-wisdoms-and-common-wisdoms/
+
+Hardware caches are managed by hardware directly.  They are generally opaque to the
+operating system and other programs.  That is, software has no direct control over the
+contents of a hardware cache.
+
+% So what?  Why learn about hardware caches?  How much performance do I gain/lose
+% depending on how cache-friendly my algorithm/code is?
+\alts{Despite this, We will see that despite this}, two algorithms solving the same
+problem with the same asymptotic complexity (in the same \(\Theta(g(n))\)) may differ in
+performance by two orders of magnitude because of different \emph{memory access
+patterns} (\cref{sec:map})~\cite{bigos}.  We will see an example of this in
+\cref{sec:vvl}.
+
+In a nutshell, hardware caches are ubiquitous but the performance improvements they
+provide are conditional.
+\begin{comment}
+   To use them effectively,
+   % To obtain optimal performance,
+   algorithms must be designed and implemented with the architecture
+   % design, structure, manner of functioning, inner workings, properties
+   of hardware caches in mind.
+\end{comment}
+Effective use of hardware caches requires knowledge about \alts{how they work, their
+architecture}.  Algorithms must be designed and implemented observing \alts{this
+knowledge, their interactions with hardware caches}.
+
+% How?
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

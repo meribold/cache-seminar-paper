@@ -16,9 +16,9 @@ MAKEFLAGS += --no-builtin-rules
 all: paper.pdf
 
 paper.pdf: paper.tex paper.bib array-sum/size-time.csv line-size/line-size.csv
-	latexmk -pdf -shell-escape
+	latexmk -pdf -shell-escape $<
 	makeglossaries paper
-	latexmk -pdf -shell-escape
+	latexmk -pdf -shell-escape $<
 
 # Don't optimize?
 line-size/line-size.csv: line-size/line-size.c

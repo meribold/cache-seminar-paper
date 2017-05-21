@@ -1,0 +1,144 @@
+\section{Basic Concepts}
+% \section{Basic Principles}
+% \section{Key Terms} % That sounds boring.
+Some architectural properties of hardware caches lead to important concepts for using them
+effectively.
+
+\subsection{Cache Line} % or Cache Block
+% https://en.wikipedia.org/wiki/CPU_cache#Cache_entries
+%
+% > On x86/x64, cache line is 64 bytes for many years now.
+%      -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+% > In early caches these lines were 32 bytes long; nowadays the norm is 64 bytes.
+%      -- Drepper, p. 15
+% > It is not possible for a cache to hold partial cache lines.
+%      -- Drepper, p. 16
+\emph{Cache lines} or \emph{cache blocks} are the unit of data transfer between main
+memory and cache.  They have a fixed size, which has been \say{64 bytes for many years} on
+x86/x64 CPUs~\cites{ithare-paadl}[\href{https://youtu.be/WDIkqP4JbkE?t=21m41s}{21:41}]
+{scott-meyers-talk}.%
+\footnote{%
+% > The original Pentium 4 processor also had an eight-way set associative L2 integrated
+% > cache 256 KB in size, with 128-byte cache blocks.
+%      -- https://en.wikipedia.org/wiki/CPU_cache#Example
+% TODO: what about the block size of main memory?  Should it be the same?
+Line sizes aren't \emph{necessarily} \alts{identical, homogenous} among a CPU's caches.
+The Intel Pentium 4 processor had an \texttt{L1d} cache with \say{64 bytes per cache
+line}~\cite[p.~9]{pentium4} but an \texttt{L2} cache with \say{128 bytes per cache
+line}~\cite[p.~11]{pentium4}.}
+\begin{comment}
+   \multiplefootnoteseparator%
+   % See <https://tex.stackexchange.com/a/71015>.
+   \footnote{This can also be checked on the command line:
+   \mintinline{bash}{cat /proc/cpuinfo | grep cache_alignment}}
+\end{comment}
+% > It means that as soon as you've accessed any single byte in a cache line, all the
+% > other 63 bytes are already in L1 cache
+%      -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+\alts{%
+   This means accessing a single uncached 32-bit integer entails loading another 60
+   adjacent bytes.,
+   {This means when a single byte has to be loaded, another 63 adjacent bytes will be as
+   well.},
+   {When, for example, accessing a single byte that isn't already cached, another 63
+   adjacent bytes will be loaded.}
+}
+% Even when compiling C++ for 64-bit systems, `int` is typically 32-bit.
+
+My laptop's AMD E-450 CPU is no exception and both of its data caches have 64-byte cache
+lines.\footnote{\Cref{app:cpuinfo} explains how to obtain this information.}
+% \begin{minted}[gobble=3]{bash}
+%    $ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
+%    64
+%    64
+% \end{minted}
+%stopzone
+% \footnote{%
+%    \mintinline{bash}!$ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE!\\
+%    %stopzone
+%    \noindent\mintinline{bash}!64!\\
+%    \noindent\mintinline{bash}!64!
+% }
+We can verify this quite easily.  Consider \cref{lst:line-size}.  It loops over an array
+with an increment given at compile time as \texttt{STEP} and measures the processor time.
+The results for different values of \texttt{STEP} are plotted in \cref{fig:line-size}.
+% Starting from a step size of 16, the time roughly halves every time the step size is
+% doubled.  For the first 4 step sizes however, it is almost constant.
+As expected, the time roughly halves whenever the step size is doubled --- but only from a
+step size of 16.  For the first 4 step sizes, it is almost constant.
+
+% The reason why the loops take the same amount of time has to do with memory.  The
+% running time of these loops is dominated by the memory accesses to the array, not by the
+% integer multiplications.
+%    -- https://igoro.com/archive/gallery-of-processor-cache-effects/
+This is because the run times are \alts{primarily due to, dominated by} memory accesses.
+Up to a step size of 8, every 64-byte line has to be loaded.  At 16, the values we modify
+are 128 bytes apart,%
+\footnote{16 \texttt{int64\_t} values of 8 bytes each}
+so every other cache line is skipped.  At 32, three out of four cache lines are skipped,
+and so on~\cite[cf.][example 2]{gallery}.
+
+\begin{listing}
+   \inputminted[firstline=27]{c}{line-size/line-size.c}
+   \caption{Loop over \mintinline{text}{array} with increment \mintinline{text}{STEP}}
+   \label{lst:line-size}
+\end{listing}
+
+\begin{figure}
+   \centering
+   \begin{tikzpicture}
+      \datavisualization
+      [scientific axes=clean,
+       x axis={logarithmic,
+               ticks={major={at={1 as \textbf{1}, 2 as \textbf{2}, 4 as \textbf{4},
+                                 8 as \textbf{8}, 16, 64, 256, 1024}},
+                      minor={at={32, 128, 512}}},
+               label={Step size}, length=0.8\textwidth},
+       y axis={logarithmic,
+               % ticks={major={at={4, 16, 64, 256}}, minor={at={8, 32, 128}}},
+               % ticks={major={at={6, 12, 24, 48, 92, 184}}},
+               ticks={major={at={5, 10, 20, 40, 80, 160, 320}}},
+               label={Processor time (ms)}, length=6cm},
+       visualize as scatter,
+       scatter={style={mark=*, mark options={scale=.65}}}]
+         % See <https://tex.stackexchange.com/q/198323>.
+         data [read from file=line-size/line-size.csv, separator=\space];
+   \end{tikzpicture}
+   \caption{Processor times for running \cref{lst:line-size}}
+   \label{fig:line-size}
+\end{figure}
+
+\subsection{Prefetching}
+% http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+% http://ithare.com/c-for-games-performance-allocations-and-data-locality/2/
+% https://en.wikipedia.org/wiki/Cache_prefetching
+\emph{Cache prefetching} is a technique by which CPUs recognize predictable access
+patterns (for instance sequential access to an array)... TODO
+
+\subsection{Associativity}
+% https://en.wikipedia.org/wiki/CPU_cache#Associativity
+
+\subsection{Cache Hits and Misses}
+% TODO: what happens when we miss?  How bad is it?  What about \gls{smt}?
+
+\subsection{Spatial Locality}
+Data is loaded from bigger, slower memory into smaller, faster memory (e.g. from main
+memory into the CPU cache) in \emph{blocks}.
+
+Moving down the memory hierarchy, access latencies increase faster than the
+\emph{obtainable} bandwidth: \say{[w]e can still achieve large bandwidths by accessing
+many close-by bits together [...].  Access to large \emph{blocks} [emphasis added] of
+memory is almost as fast as access to a single bit},~\cite[2]{afmh}.
+
+% TODO: move this.
+% Consider the program shown in \cref{lst:array-sum}.  It repeatedly loops over an array
+% to compute the sum of its elements.  Before exiting, it prints the CPU time spend
+% summing the array.
+
+\subsection{Temporal Locality}
+TODO~\cite{drepper2007}.
+
+\subsection{Memory Access Pattern}
+\label{sec:map}
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

@@ -18,8 +18,6 @@ all: paper.pdf
 paper.pdf: paper.tex paper.bib array-sum/size-time.csv line-size/line-size.csv
 	latexmk -pdf -shell-escape $<
 	makeglossaries $(basename $<)
-	@# makeglossaries -d $(CURDIR) $(basename $<)
-	@# makeglossaries $(basename $(notdir $<))
 	latexmk -pdf -shell-escape $<
 
 line-size/line-size.csv: line-size/line-size.c

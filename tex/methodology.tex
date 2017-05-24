@@ -1,0 +1,78 @@
+% Programs: `time`, bad; `\time -v`, better; oprofile(1); gprof(1); perf; Valgrind's
+% cachegrind?; ...
+
+% Performance Analysis; Run Time Analysis; Timing Methodology; Profiling Pitfalls; Run
+% Time Measuring; Benchmarking Methodology; Performance Monitoring
+\section{[TODO] Profiling Methodology}
+\label{app:meth}
+
+Plenty of things can go wrong when
+profiling.
+% measuring \alts{execution, run} times.
+These are the ones I was aware of and tried to account for while doing measurements for
+this \article.
+\begin{itemize}
+   \item \emph{CPU frequency scaling and boosting}.
+      CPU frequencies are usually dynamic these days and automatically adjusted based on
+      at least workload and temperature.  This should be disabled when measuring execution
+      times.
+      \begin{minted}[autogobble]{text}
+         # TODO
+      \end{minted}
+      % See [5].  Not a problem when measuring cycles.
+   \item \emph{Interrupts and context switches.}  The process being timed has to share
+      resources with other processes and the operating system.  A context switch will not
+      only increase wall time, it will also increase cycles because of TLB flushes and
+      cache evictions. % See <https://en.wikipedia.org/wiki/Context_switch>.
+
+      Processor shielding, % See [5].
+      taking the minimum of several measurements, and assigning a very high priority can
+      \alts{help here, mitigate these problems}.
+      % This is likely better than using nice(1).
+      \begin{minted}[autogobble]{text}
+         # chrt -f 99 \time -v ./program
+      \end{minted}
+   \item \emph{CPU jumping.}
+      % See <https://youtu.be/vrfYLlR8X8k?t=33m34s>.
+      CPU pinning (setting processor/thread affinity) may help. % See [2] and [5].
+   \item \emph{Cache warmth.}
+      % See <https://youtu.be/vrfYLlR8X8k?t=41m00s>.
+      When comparing different solutions on the same data set, later ones may benefit from 
+      data having been loaded into cache already.  Checking whether swapping the order of
+      measurements changes the results is a good idea.
+\end{itemize}
+These effects may \alts{add noise to, pollute} the results, render them irreproducible, or
+invalidate them completely.
+
+General mitigation/alleviation strategy: take the minimum execution time of \alts{all, a
+number of} runs; all noise is additive (TODO: not the one caused by the cache being hot).
+% See [7].
+
+\subsection{Measuring CPU cycles}
+\label{app:cycles}
+
+Frequency scaling isn't a problem here.  I used the \mintinline{text}{ocount(1)} event
+counting tool added to the OProfile (TODO: cite) project in version 0.9.9.  [TODO] This
+uses \emph{hardware performance counters}.
+% `perf(1)` seems to be a newer alternative to OProfile [8].
+
+\begin{minted}[autogobble]{text}
+   ophelp
+   sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED program
+\end{minted}
+
+TODO~\cite[78\psqq]{drepper2007}.
+
+% [1]:  https://en.wikipedia.org/wiki/Profiling_(computer_programming)
+% [2]:  https://en.wikipedia.org/wiki/Processor_affinity
+% [3]:  https://en.wikipedia.org/wiki/OProfile
+% [4]:  https://en.wikipedia.org/wiki/Perf_(Linux)
+% [5]:  https://github.com/JuliaCI/BenchmarkTools.jl/blob/master/doc/linuxtips.md
+% [6]:  http://stackoverflow.com/q/9006596 "On `/usr/bin/time` for benchmarks and `perf`"
+% [7]:  https://youtu.be/vrfYLlR8X8k "Andrei Alexandrescu - Writing Fast Code"
+% [8]:  http://oprofile-list.sf.narkive.com/rVbJlHdX/oprofile-vs-perf
+% [9]:  http://oprofile.sourceforge.net/about/
+% [10]: https://en.wikipedia.org/wiki/Hardware_performance_counter
+% [11]: http://oprofile.sourceforge.net/doc/index.html
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

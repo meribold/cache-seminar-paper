@@ -94,4 +94,97 @@ less problematic}~\cite[31]{drepper2007} and optimizations for data and instruct
 tend to improve \gls{tlb} usage as well%
 ~\cite[\href{https://youtu.be/WDIkqP4JbkE?t=11m53s}{11:53}]{scott-meyers-talk}.
 
+My laptop's AMD E-450 CPU has cores with \alts{an \gls{l1d} cache of 32 KiB, 32 KiB of
+\gls{l1d} cache} and a unified \gls{l2} cache of 512 KiB each.%
+\footnote{\Cref{app:cpuinfo} explains how to obtain this information.}
+We can both verify these sizes and get \alts{a reasonably good measure, a rough measure,
+an approximation} of the access times by profiling
+\cref{lst:access-times}
+% the \alts{program, listing} below
+for different values of \mintinline{text}{SIZE}.%
+% FIXME: the label is wrong: should be "Appendix" but is "Section".
+\footnote{\Cref{app:cycles} details how.}
+% It reads random memory addresses
+% The program randomly reads
+% locations
+% The program repeatedly \alts{reads, accesses} random elements
+This program repeatedly \alts{reads, accesses} elements
+from \alts[2]{an array of the configured size, a thusly sized array}
+in random \alts{order, sequence, succession}.
+To do this
+\alts{with minimal overhead, efficiently}, the array \alts{is first set up, acts} as a
+circular, singly linked list where every element except the last \alts{points to a, has a}
+random successor.  When compiled with \mintinline{text}{-DBASELINE}, only this
+initialization is done.
+\Cref{fig:access-times} shows the deltas of CPU cycles used when and when not having
+defined \mintinline{text}{BASELINE}.
+I divided by \mintinline{text}{N} to get the cycles spend on each loop iteration.
+
+% XXX: hacks!  Use the figure environment so that LaTeX won't display this listing after
+% the plot showing the results of profiling it.  "LaTeX [only] keeps all floats of the
+% same *type* in order" [1].  Use `\captionof` to label the listing correctly as a
+% listing.
+%
+% [1]: https://tex.stackexchange.com/q/127742/#comment290982_127744
+\begin{comment}
+   \begin{figure}
+      \inputminted[firstline=9]{c}{access-times/access-times.c}
+      \captionof{listing}{TODO}
+      \label{lst:access-times}
+   \end{figure}
+\end{comment}
+
+% \newenvironment{code}{\captionsetup{type=listing}}{}
+% \begin{code}
+%    \inputminted[firstline=9]{c}{access-times/access-times.c}
+%    \caption{TODO}
+%    \label{lst:access-times}
+% \end{code}
+
+% Actually, don't use a float.  The listing should be allowed to span multiple pages which
+% floats aren't.
+%
+% [1]: https://tex.stackexchange.com/q/14522/#comment484569_75880
+% [2]: https://tex.stackexchange.com/q/175650
+%      "How to allow page break inside a float environment?"
+% [3]: https://tex.stackexchange.com/q/12428
+\inputminted[firstline=9]{c}{access-times/access-times.c}
+\captionof{listing}{}
+% \captionof{listing}{Random Reads\label{lst:access-times}}
+\label{lst:access-times}
+
+% https://tex.stackexchange.com/a/82473
+% \global\csname @topnum\endcsname 0
+
+% XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
+% interrupting the source code listing.
+\begin{figure}[hbp]
+   \centering
+   \begin{tikzpicture}
+      \datavisualization
+      [scientific axes=clean,
+       x axis={logarithmic,
+               ticks={major={at={2048 as 2, 8192 as 8, 32768 as \textbf{32},
+                                 131072 as 128, 524288 as \textbf{512}, 2097152 as 2048,
+                                 8388608 as 8192, 33554432 as 32768, 134217728 as
+                                 % $128\cdot 2^{10}$}}},
+                                 % $2^{17}$}}},
+                                 131072}}},
+               grid={at={32768, 524288}},
+               label={Array Size (KiB)}, length=0.8\textwidth},
+       y axis={include value=0, label={Cycles / Iteration}, length=6cm, grid=at ticks},
+       % y axis={logarithmic,
+       %         ticks={major={at={3, 15, 23, 190}}},
+       %         grid={at={15, 23}},
+       %         label={Cycles / Element}, length=6cm},
+       visualize as scatter,
+       scatter={style={mark=*, mark options={scale=.65}}}]
+         data [read from file=access-times/access-times.csv, separator=\space];
+   \end{tikzpicture}
+   % \caption{Sequential Read Access}
+   % \caption{Access Times for Random Reads (\Cref{lst:access-times})}
+   \caption{Access Times for Random Reads}
+   \label{fig:access-times}
+\end{figure}
+
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

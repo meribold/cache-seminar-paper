@@ -45,8 +45,8 @@ line}~\cite[p.~11]{pentium4}.}
 }
 % Even when compiling C++ for 64-bit systems, `int` is typically 32-bit.
 
-My laptop's AMD E-450 CPU is no exception and both of its data caches have 64-byte cache
-lines.\footnote{\Cref{app:cpuinfo} explains how to obtain this information.}
+My E-450 CPU is no exception and both of its data caches have 64-byte cache lines.%
+\footnote{See \cref{app:cpuinfo}.}
 % \begin{minted}[gobble=3]{bash}
 %    $ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
 %    64
@@ -107,6 +107,15 @@ and so on~\cite[cf.][example 2]{gallery}.
    \caption{Processor times for running \cref{lst:line-size}}
    \label{fig:line-size}
 \end{figure}
+
+% TODO: talk about how the term cache line is commonly conflated to mean an appropriately
+% sized and *aligned* block of main memory that can be loaded into a cache line.  This is
+% how it works, right?  Or can we load blocks starting at arbitrary addresses into a cache
+% line?  Or maybe we can take memory that isn't even contiguous?
+%
+% Maybe talk about the 64-bit bus width and burst mode as well.  And maybe about how a
+% write requires a read if we only write part of a cache line and the optimization of
+% adding dummy writes (I think Andrei talked about this).
 
 \subsection{Prefetching}
 % http://ithare.com/c-for-games-performance-allocations-and-data-locality/

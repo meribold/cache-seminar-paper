@@ -1,0 +1,25 @@
+\section{Disabling the Prefetcher}
+My initial results from from running \cref{lst:array-sum} were quite different.  See TODO.
+
+TODO: I installed \texttt{msr-tools} and OProfile.
+% This seems to work.  It did affect performance.  See
+% <https://community.amd.com/thread/180725>.
+\begin{minted}[gobble=3]{bash}
+   $ sudo modprobe msr
+   $ sudo rdmsr -a 0xC0011022
+   600001800000000
+   600001800000000
+   $ sudo wrmsr -a 0xC0011022 0x600001800002000
+   $ sudo rdmsr -a -f '13:13' 0xC0011022
+   1
+   1
+   $ sudo rdmsr -a 0xC0011022
+   600001800002000
+   600001800002000
+   $ sudo ocount -e PREFETCH_INSTRUCTIONS_DISPATCHED ./a.out
+\end{minted}
+%stopzone
+I think resetting the MSR to enable hardware prefetches doesn't work.  To get the same
+benchmmark results as before tweaking it, I have to reboot.
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

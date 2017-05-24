@@ -1,5 +1,7 @@
 % Preamble {{{1
-\documentclass[a4paper]{scrartcl}
+% See <https://tex.stackexchange.com/q/29181>.  There's some issue that causes captions
+% like "Listing 2.: Foo".  setting the `numbers` option like this fixes it.
+\documentclass[a4paper,numbers=noenddot]{scrartcl}
 
 \usepackage[utf8]{inputenc} % Assume this file is encoded in UTF-8.
 \usepackage[T1]{fontenc}    % Don't fake umlauts etc.
@@ -12,6 +14,15 @@
 \usepackage{comment}        % Comment out sections of text.
 \usepackage{mathtools}      % Improved facilities for typesetting mathematical formulae
 \usepackage{dirtytalk}      % ...
+
+% Prevent floats from moving into another section (https://www.ctan.org/pkg/placeins).
+\usepackage[above, below, section]{placeins}
+
+% Provides the `\captionof` command for typesetting captions outside of floats.  Includes
+% the [newfloat package](https://www.ctan.org/pkg/newfloat), which minted is set up to
+% use.
+\usepackage{caption} % See <https://www.ctan.org/pkg/caption>.
+% \captionsetup{labelsep=colon}
 
 % See <https://tex.stackexchange.com/q/10684/78512>.  TODO.
 \usepackage{enumitem}
@@ -27,7 +38,7 @@
 % \usepackage[all]{nowidow}
 
 % Source code listings with improved syntax highlighting
-\usepackage{minted}
+\usepackage[newfloat]{minted}
 \usemintedstyle{pastie}
 
 % Define a background color for `minted` listings.  See <http://ctan.org/pkg/minted> and
@@ -162,11 +173,12 @@ extension of the \gls{ram} model.
 \subsection{False Sharing}
 
 \clearpage
-% \appendix
-\begin{appendices}
-   % See <https://tex.stackexchange.com/q/119513>.
-   \crefalias{section}{appsec}
-   \input{tex/appendices}
+\begin{appendices} % <https://tex.stackexchange.com/q/49643>
+   \crefalias{section}{appsec} % See <https://tex.stackexchange.com/q/119513>.
+   \crefalias{subsection}{appsec}
+   \input{tex/cpu-info}
+   \input{tex/methodology}
+   % \input{tex/no-prefetch}
 \end{appendices}
 
 \clearpage

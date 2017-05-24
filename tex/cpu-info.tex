@@ -1,0 +1,18 @@
+\section{Reading Information About the CPU}
+\label{app:cpuinfo}
+% https://stackoverflow.com/q/7281699
+% https://unix.stackexchange.com/q/167038
+% https://superuser.com/q/55776
+There are many ways to display information about the processor(s) the operating system is
+running on.  Among others, the \mintinline{text}{lscpu(1)} and
+\mintinline{text}{getconf(1)} programs and the \mintinline{text}{/proc/cpuinfo}
+pseudo-file on Linux.  This is \alts{how I checked, what I used to check} my CPU's cache
+line sizes, for example:
+\begin{minted}[gobble=3]{bash}
+   $ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
+   64
+   64
+\end{minted}
+%stopzone
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

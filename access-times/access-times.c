@@ -30,7 +30,5 @@ int main() {
       i = i->next;
    }
    printf("%d\n", dummy);
-#else
-   asm("" ::: "memory");
 #endif
 }

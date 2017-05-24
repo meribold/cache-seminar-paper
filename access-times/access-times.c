@@ -4,7 +4,10 @@
 #include <stdio.h>   // printf
 #include <stdlib.h>  // rand
 
-// Cf. Figure 3.4 on page 17 of Drepper's article.
+// Cf. Figure 3.4 on page 17 of Drepper's article.  The results of
+// profiling this program are heavily influenced by what other processes
+// are active at the same time.  It's best to kill as many as possible;
+// e.g. Firefox, which tends to always use some CPU time.
 
 #define N 100000000  // 100 million
 

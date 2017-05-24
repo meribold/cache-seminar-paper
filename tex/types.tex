@@ -116,9 +116,6 @@ To do this
 circular, singly linked list where every element except the last \alts{points to a, has a}
 random successor.  When compiled with \mintinline{text}{-DBASELINE}, only this
 initialization is done.
-\Cref{fig:access-times} shows the deltas of CPU cycles used when and when not having
-defined \mintinline{text}{BASELINE}.
-I divided by \mintinline{text}{N} to get the cycles spend on each loop iteration.
 
 % XXX: hacks!  Use the figure environment so that LaTeX won't display this listing after
 % the plot showing the results of profiling it.  "LaTeX [only] keeps all floats of the
@@ -141,6 +138,11 @@ I divided by \mintinline{text}{N} to get the cycles spend on each loop iteration
 %    \label{lst:access-times}
 % \end{code}
 
+% XXX: hacks!  FIXME: I want to have the same amount of space after adding a caption with
+% \captionof to a minted listing as there would be after a normal floating minted listing.
+% See <https://tex.stackexchange.com/a/162074>.
+% \captionsetup[listing]{aboveskip=5pt, belowskip=\baselineskip}
+
 % Actually, don't use a float.  The listing should be allowed to span multiple pages which
 % floats aren't.
 %
@@ -148,13 +150,38 @@ I divided by \mintinline{text}{N} to get the cycles spend on each loop iteration
 % [2]: https://tex.stackexchange.com/q/175650
 %      "How to allow page break inside a float environment?"
 % [3]: https://tex.stackexchange.com/q/12428
-\inputminted[firstline=9]{c}{access-times/access-times.c}
-\captionof{listing}{}
-% \captionof{listing}{Random Reads\label{lst:access-times}}
-\label{lst:access-times}
+\begin{center} % XXX: hack to get normal spacing after the caption and before the listing.
+   \inputminted[firstline=12]{c}{access-times/access-times.c}
+   \captionof{listing}{}
+   % \captionof{listing}{Random Reads\label{lst:access-times}}
+   \label{lst:access-times}
+\end{center}
 
 % https://tex.stackexchange.com/a/82473
 % \global\csname @topnum\endcsname 0
+
+\Cref{fig:access-times} shows the \alts{difference, deltas} of CPU cycles used when and
+when not having defined \mintinline{text}{BASELINE}.  That is, only the cycles used by the
+main loop are counted, not those for initialization.
+I divided by \mintinline{text}{N} to get the cycles spend \alts{per, on each} loop
+iteration.
+
+Up to 32 KiB, each access takes almost exactly 3 cycles.%
+\footnote{TODO: table of actual data in appendix?}
+This is the \gls{l1d} access \alts{time, latency}.  At 32 KiB (the size of the \gls{l1d})
+the time increases to about 3.4 cycles.  This is not surprising since the cache is shared
+with other processes and the operating system, so some of our data gets evicted.  The
+first dramatic increase happens at 64 KiB followed by smaller increases at 128 and 256
+KiB.  I suspect we are seeing a mixture of \gls{l2} and \gls{l1d} accesses, with less and
+less \gls{l1d} hits and an \gls{l2} access time of around 25 cycles.
+
+The values from 512 KiB to 128 MiB \alts{exhibit, follow} a similar pattern.  The relative
+increase when the array size matches that of the \gls{l2} is more striking than for the
+\gls{l1d} before; possibly because \gls{l2} is a unified cache that also holds
+instructions.  Eventually, more and more accesses go to main memory, \alts{causing,
+incurring} delays of up to 200 cycles.
+
+TODO~\cite[cf.][17]{drepper2007}.
 
 % XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
 % interrupting the source code listing.

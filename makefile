@@ -52,12 +52,12 @@ access-times/access-times.out: $(access-time-results)
 # The `sed` command joins every 3 lines (https://stackoverflow.com/a/16906481).  The
 # second `awk` command subtracts the third from the second column.
 access-times/access-times.csv: access-times/access-times.out
-	echo 'x y' > '$@'
+	echo 'x y total baseline' > '$@'
 	@# awk '/Bytes:/ { printf $$2" " }
 	awk '/Bytes:/ { print $$2 } \
 	     /CPU_CLK_UNHALTED/ { gsub(/,/,"",$$2); print $$2/100000000 }' '$<' | \
 	sed 'N;N;s/\n/ /g' | \
-	awk '{ print $$1" "$$2 - $$3 }' >> '$@'
+	awk '{ print $$1" "$$2 - $$3" "$$2" "$$3 }' >> '$@'
 
 line-size/line-size.csv: line-size/line-size.c
 	echo 'x y' > '$@'

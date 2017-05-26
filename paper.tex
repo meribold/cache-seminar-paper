@@ -18,9 +18,38 @@
 % Prevent floats from moving into another section (https://www.ctan.org/pkg/placeins).
 \usepackage[above, below, section]{placeins}
 
-% Provides the `\captionof` command for typesetting captions outside of floats.  Includes
-% the [newfloat package](https://www.ctan.org/pkg/newfloat), which minted is set up to
-% use.
+% Stack for generating tables from CSV files.  Loading is done by [pgfplotstable].  It can
+% also round, format and post-process data.  See [1].
+% [siunitx] adds the `S` column type for advanced aligning in tables like around the
+% decimal marker.  Getting this to work is a bit tricky; see [2].  There is some support
+% for aligning around the decimal marker in [pgfplotstable] (see [3]), but I couldn't get
+% it to work.  One can also right-align numbers relatively to each other but still center
+% the column as a whole with [siunitx] (see [4]).
+% [pgfplotstable]: https://www.ctan.org/pkg/pgfplotstable
+% [siunitx]: https://www.ctan.org/pkg/siunitx
+% [1]: https://tex.stackexchange.com/q/146716
+% [2]: https://tex.stackexchange.com/q/131081
+% [3]: https://tex.stackexchange.com/q/276485
+% [4]: https://tex.stackexchange.com/q/9203
+\usepackage{pgfplotstable, siunitx}
+% These packages are recommended by [pgfplotstable].  The booktabs package adds the
+% `\toprule`, `\midrule`, and `\bottomrule` commands for better looking tables.  See [5].
+\usepackage{booktabs, array, colortbl}
+% [booktabs]: https://www.ctan.org/pkg/booktabs
+% [5]: https://en.wikibooks.org/wiki/LaTeX/Tables#Professional_tables
+
+% Use a consitent group/thousands separator for siunitx and pgf.
+\pgfkeys{/pgf/number format/.cd,
+   set thousands separator=\,
+}
+% \sisetup{
+%    group-separator={,}
+% }
+
+% Provides the `\captionof` command for typesetting captions outside of floats, which is
+% an extension of th one provided by [capt-of](https://www.ctan.org/pkg/capt-of).
+% Includes the [newfloat package](https://www.ctan.org/pkg/newfloat), which minted is set
+% up to use.
 \usepackage{caption} % See <https://www.ctan.org/pkg/caption>.
 % \captionsetup{labelsep=colon}
 
@@ -178,6 +207,7 @@ extension of the \gls{ram} model.
    \crefalias{subsection}{appsec}
    \input{tex/cpu-info}
    \input{tex/methodology}
+   \input{tex/data}
    % \input{tex/no-prefetch}
 \end{appendices}
 

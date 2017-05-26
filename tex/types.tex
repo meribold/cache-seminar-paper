@@ -152,7 +152,9 @@ initialization is done.
 % [3]: https://tex.stackexchange.com/q/12428
 \begin{center} % XXX: hack to get normal spacing after the caption and before the listing.
    \inputminted[firstline=12]{c}{access-times/access-times.c}
-   \captionof{listing}{}
+   % \captionof{listing}{}
+   % \captionof{listing}{Randomly Access Elements of \mintinline{text}{array}}
+   \captionof{listing}{Randomly Read Array Elements}
    % \captionof{listing}{Random Reads\label{lst:access-times}}
    \label{lst:access-times}
 \end{center}
@@ -160,14 +162,17 @@ initialization is done.
 % https://tex.stackexchange.com/a/82473
 % \global\csname @topnum\endcsname 0
 
-\Cref{fig:access-times} shows the \alts{difference, deltas} of CPU cycles used when and
-when not having defined \mintinline{text}{BASELINE}.  That is, only the cycles used by the
-main loop are counted, not those for initialization.
-I divided by \mintinline{text}{N} to get the cycles spend \alts{per, on each} loop
-iteration.
+% \Cref{fig:access-times} shows the \alts{difference, deltas} of CPU cycles used when and
+% when not having defined \mintinline{text}{BASELINE}.
+\Cref{fig:access-times} shows the extra CPU cycles used by \cref{lst:access-times}
+\alts[2]{above, in addition to, compared to} the \mintinline{text}{BASELINE} version for
+different array sizes.
+That is, only the cycles used by the main loop are \alts{given, counted}, not those for
+initialization.  I divided by \mintinline{text}{N} to get the cycles spent \alts{per, on
+each} loop iteration.
 
 Up to 32 KiB, each access takes almost exactly 3 cycles.%
-\footnote{TODO: table of actual data in appendix?}
+\footnote{The numerical results are shown in \cref{tab:access-times}.}
 This is the \gls{l1d} access \alts{time, latency}.  At 32 KiB (the size of the \gls{l1d})
 the time increases to about 3.4 cycles.  This is not surprising since the cache is shared
 with other processes and the operating system, so some of our data gets evicted.  The
@@ -176,39 +181,39 @@ KiB.  I suspect we are seeing a mixture of \gls{l2} and \gls{l1d} accesses, with
 less \gls{l1d} hits and an \gls{l2} access time of around 25 cycles.
 
 The values from 512 KiB to 128 MiB \alts{exhibit, follow} a similar pattern.  The relative
-increase when the array size matches that of the \gls{l2} is more striking than for the
-\gls{l1d} before; possibly because \gls{l2} is a unified cache that also holds
-instructions.  Eventually, more and more accesses go to main memory, \alts{causing,
-incurring} delays of up to 200 cycles.
-
-TODO~\cite[cf.][17]{drepper2007}.
+increase when the array size matches that of the \gls{l2}, 512 KiB, is \alts{greater, more
+striking} than for the \gls{l1d} before; possibly because \gls{l2} is a unified cache that
+also holds instructions.  Eventually, more and more accesses go to main memory,
+\alts{causing, incurring} delays of up to 200 cycles~\cite[cf.][17]{drepper2007}.
 
 % XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
 % interrupting the source code listing.
 \begin{figure}[hbp]
    \centering
    \begin{tikzpicture}
-      \datavisualization
-      [scientific axes=clean,
-       x axis={logarithmic,
-               ticks={major={at={2048 as 2, 8192 as 8, 32768 as \textbf{32},
-                                 131072 as 128, 524288 as \textbf{512}, 2097152 as 2048,
-                                 8388608 as 8192, 33554432 as 32768, 134217728 as
-                                 % $128\cdot 2^{10}$}}},
-                                 % $2^{17}$}}},
-                                 131072}}},
-               grid={at={32768, 524288}},
-               label={Array Size (KiB)}, length=0.8\textwidth},
-       y axis={include value=0, label={Cycles / Iteration}, length=6cm, grid=at ticks},
-       % y axis={logarithmic,
-       %         ticks={major={at={3, 15, 23, 190}}},
-       %         grid={at={15, 23}},
-       %         label={Cycles / Element}, length=6cm},
-       visualize as scatter,
-       scatter={style={mark=*, mark options={scale=.65}}}]
+      \datavisualization[%
+         scientific axes=clean,
+         x axis={%
+            logarithmic,
+            ticks={major={
+               /pgf/number format/int detect,
+               at={
+                  2048 as 2, 8192 as 8, 32768 as \textbf{32}, 131072 as 128,
+                  524288 as \textbf{512}, 2097152 as \pgfmathprintnumber{2048},
+                  8388608 as \pgfmathprintnumber{8192},
+                  33554432 as \pgfmathprintnumber{32768},
+                  134217728 as \pgfmathprintnumber{131072},
+                  % $128\cdot 2^{10}$}}},
+                  % $2^{17}$}}},
+            }}},
+            grid={at={32768, 524288}},
+            label={Array Size (KiB)},
+            length=0.8\textwidth},
+         y axis={include value=0, label={Cycles / Iteration}, length=6cm, grid=at ticks},
+         visualize as scatter,
+         scatter={style={mark=*, mark options={scale=.65}}}]
          data [read from file=access-times/access-times.csv, separator=\space];
    \end{tikzpicture}
-   % \caption{Sequential Read Access}
    % \caption{Access Times for Random Reads (\Cref{lst:access-times})}
    \caption{Access Times for Random Reads}
    \label{fig:access-times}

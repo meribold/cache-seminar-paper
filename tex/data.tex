@@ -1,0 +1,49 @@
+\section{Amazing Data}
+\label{app:data}
+
+\begin{center}
+   \pgfplotstabletypeset[
+      % See <https://tex.stackexchange.com/q/131081/#comment311347_137554>.
+      assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
+      every head row/.style={%
+         before row=\toprule,
+         % output empty row,
+         % before row={%
+         %    \\\toprule
+         %    Array Sizes (KiB) & \multicolumn{2}{c}{Cycles / Iteration} \\
+         % },
+         after row=\midrule,
+      },
+      every last row/.style={%
+         after row=\bottomrule,
+      },
+      columns={x, y},
+      columns/x/.style={
+         assign column name={Array Size (KiB)},
+         numeric as string type,
+         column type={S[table-format=6.0]},
+         % preproc/expr={##1/1024},
+         % Using `divide by=1024` or `preproc/expr={##1/1024}` performs floating-point
+         % math and introduces errors.  This abomination hacked together by trial and
+         % error doesn't.
+         preproc cell content/.code={%
+            \pgfkeysgetvalue{/pgfplots/table/@cell content}\a
+            \newcount\b
+            \b=\number\a
+            \divide\b by 1024
+            \pgfkeyssetvalue{/pgfplots/table/@cell content}{\the\b}
+         },
+      },
+      columns/y/.style={
+         assign column name={Cycles / Iteration},
+         string type,
+         column type={S[round-mode=places, round-precision=2]},
+         % column type=c, dec sep align,
+         % fixed, fixed zerofill, precision=3,
+      },
+   ]{access-times/access-times.csv}
+   \captionof{table}{Amazing Data}
+   \label{tab:access-times}
+\end{center}
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

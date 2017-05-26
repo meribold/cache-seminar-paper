@@ -17,12 +17,10 @@
       every last row/.style={%
          after row=\bottomrule,
       },
-      columns={x, y},
+      columns={x, y, x, y},
       columns/x/.style={
          assign column name={Array Size (KiB)},
          numeric as string type,
-         column type={S[table-format=6.0]},
-         % preproc/expr={##1/1024},
          % Using `divide by=1024` or `preproc/expr={##1/1024}` performs floating-point
          % math and introduces errors.  This abomination hacked together by trial and
          % error doesn't.
@@ -41,6 +39,18 @@
          % column type=c, dec sep align,
          % fixed, fixed zerofill, precision=3,
       },
+      % Split the table into two (super?) columns.  See page 42 and 43 of the
+      % pgfplotstable manual.
+      display columns/0/.style={
+         select equal part entry of={0}{2},
+         column type={S[table-format=3.0]},
+      },
+      display columns/1/.style={select equal part entry of={0}{2}},
+      display columns/2/.style={
+         select equal part entry of={1}{2},
+         column type={S[table-format=6.0]},
+      },
+      display columns/3/.style={select equal part entry of={1}{2}},
    ]{access-times/access-times.csv}
    \captionof{table}{Amazing Data}
    \label{tab:access-times}

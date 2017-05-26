@@ -186,6 +186,11 @@ striking} than for the \gls{l1d} before; possibly because \gls{l2} is a unified 
 also holds instructions.  Eventually, more and more accesses go to main memory,
 \alts{causing, incurring} delays of up to 200 cycles~\cite[cf.][17]{drepper2007}.
 
+\Cref{sec:prefetch} will explain the reason for going through the trouble of conducting
+random accesses instead of just reading the array sequentially for this measurement.
+% We will see why this measurement was conducted with random instead of sequential
+% accesses in \cref{sec:prefetch}.
+
 % XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
 % interrupting the source code listing.
 \begin{figure}[hbp]

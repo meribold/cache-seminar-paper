@@ -6,8 +6,14 @@
 There are many ways to display information about the processor(s) the operating system is
 running on.  Among others, the \mintinline{text}{lscpu(1)} and
 \mintinline{text}{getconf(1)} programs and the \mintinline{text}{/proc/cpuinfo}
-pseudo-file on Linux.  This is \alts{how I checked, what I used to check} my CPU's cache
-line sizes, for example:
+pseudo-file on Linux.  This is how I checked my CPU's cache sizes, for example:
+\begin{minted}[gobble=3]{bash}
+   $ lscpu | grep 'L1d\|L2'
+   L1d cache:             32K
+   L2 cache:              512K
+\end{minted}
+%stopzone
+This is what I used to get the cache line sizes:
 \begin{minted}[gobble=3]{bash}
    $ getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
    64

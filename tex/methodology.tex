@@ -51,7 +51,8 @@ number of} runs; all noise is additive (TODO: not the one caused by the cache be
 \subsection{Measuring CPU cycles}
 \label{app:cycles}
 
-Frequency scaling isn't a problem here.  I used the \mintinline{text}{ocount(1)} event
+Frequency scaling isn't a problem here (it is when comparing things to cycles that aren't
+directly proportional to frequency).  I used the \mintinline{text}{ocount(1)} event
 counting tool added to the OProfile (TODO: cite) project in version 0.9.9.  [TODO] This
 uses \emph{hardware performance counters}.
 % `perf(1)` seems to be a newer alternative to OProfile [8].

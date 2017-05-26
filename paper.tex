@@ -1,22 +1,40 @@
 % Preamble {{{1
-% See <https://tex.stackexchange.com/q/29181>.  There's some issue that causes captions
-% like "Listing 2.: Foo".  setting the `numbers` option like this fixes it.
+% There's some issue that causes captions like "Listing 2.: Foo".  setting the `numbers`
+% option like this fixes it.  See <https://tex.stackexchange.com/q/29181>.
 \documentclass[a4paper,numbers=noenddot]{scrartcl}
 
 \usepackage[utf8]{inputenc} % Assume this file is encoded in UTF-8.
 \usepackage[T1]{fontenc}    % Don't fake umlauts etc.
 \usepackage{lmodern}        % Use the lmodern font (http://tex.stackexchange.com/a/65103).
 \usepackage{microtype}      % Better microtypography (http://www.ctan.org/pkg/microtype)
-\usepackage{hyperref}       % Clickable hyperlinks, load before `glossaries`
-\usepackage{cleveref}       % Use `\cref{fig:foo}` instead of `figure~\ref{fig:foo}`.
-                            % Load after `hyperref`.  See
-                            % <https://tex.stackexchange.com/q/36295>
 \usepackage{comment}        % Comment out sections of text.
 \usepackage{mathtools}      % Improved facilities for typesetting mathematical formulae
 \usepackage{dirtytalk}      % ...
 
 % Prevent floats from moving into another section (https://www.ctan.org/pkg/placeins).
 \usepackage[above, below, section]{placeins}
+
+% Stack for cross-referencing.  XXX: the packages have to be loaded in this order (see the
+% cleveref manual).
+% * The [varioref] package adds commands that automatically print the target's page number
+%   iff it is on a different page than the reference.
+% * [hyperref] turns references into clickable hyperlinks.
+% * Among other things, [cleveref] adds commands that include the type of the referenced
+%   object.  Instead of `figure~\ref{fig:foo}`, one can write `\cref{fig:foo}`.  It also
+%   enhances the varioref commands accordingly.
+% See [1], [2], and [3].
+%
+% [varioref]: https://ctan.org/pkg/varioref
+% [hyperref]: https://ctan.org/pkg/hyperref
+% [cleveref]: https://ctan.org/pkg/cleveref
+% [1]: https://en.wikibooks.org/wiki/LaTeX/Labels_and_Cross-referencing
+% [2]: https://tex.stackexchange.com/q/83037
+%      "Difference between ref, varioref and cleveref."
+% [3]: https://tex.stackexchange.com/q/36295
+%      "Cross-reference packages: which to use, which conflict?"
+\usepackage{varioref}
+\usepackage{hyperref} % XXX: load before `glossaries`
+\usepackage{cleveref} % Use `\cref{fig:foo}` instead of `figure~\ref{fig:foo}`.
 
 % Stack for generating tables from CSV files.  Loading is done by [pgfplotstable].  It can
 % also round, format and post-process data.  See [1].

@@ -172,7 +172,7 @@ initialization.  I divided by \mintinline{text}{N} to get the cycles spent \alts
 each} loop iteration.
 
 Up to 32 KiB, each access takes almost exactly 3 cycles.%
-\footnote{The numerical results are shown in \cref{tab:access-times}.}
+\footnote{The numerical results are shown in \vref{tab:access-times}.}
 This is the \gls{l1d} access \alts{time, latency}.  At 32 KiB (the size of the \gls{l1d})
 the time increases to about 3.4 cycles.  This is not surprising since the cache is shared
 with other processes and the operating system, so some of our data gets evicted.  The

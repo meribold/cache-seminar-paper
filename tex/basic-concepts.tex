@@ -13,6 +13,8 @@ effectively.
 %      -- Drepper, p. 15
 % > It is not possible for a cache to hold partial cache lines.
 %      -- Drepper, p. 16
+% > A cache line is the "unit" of data you transfer to a cache.
+%      -- http://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Memory/introCache.html
 \emph{Cache lines} or \emph{cache blocks} are the unit of data transfer between main
 memory and cache.  They have a fixed size, which has been \say{64 bytes for many years} on
 x86/x64 CPUs~\cites{ithare-paadl}[\href{https://youtu.be/WDIkqP4JbkE?t=21m41s}{21:41}]
@@ -61,6 +63,12 @@ My E-450 CPU is no exception and both of its data caches have 64-byte cache line
 % }
 We can verify this quite easily.  Consider \cref{lst:line-size}.  It loops over an array
 with an increment given at compile time as \texttt{STEP} and measures the processor time.
+\begin{center}
+   \inputminted[firstline=27]{c}{line-size/line-size.c}
+   \captionof{listing}{%
+      Loop over \mintinline{text}{array} with increment \mintinline{text}{STEP}}
+   \label{lst:line-size}
+\end{center}
 The results for different values of \texttt{STEP} are plotted in \cref{fig:line-size}.
 % Starting from a step size of 16, the time roughly halves every time the step size is
 % doubled.  For the first 4 step sizes however, it is almost constant.
@@ -78,11 +86,13 @@ are 128 bytes apart,%
 so every other cache line is skipped.  At 32, three out of four cache lines are skipped,
 and so on~\cite[cf.][example 2]{gallery}.
 
-\begin{listing}
-   \inputminted[firstline=27]{c}{line-size/line-size.c}
-   \caption{Loop over \mintinline{text}{array} with increment \mintinline{text}{STEP}}
-   \label{lst:line-size}
-\end{listing}
+\begin{comment}
+   \begin{listing}
+      \inputminted[firstline=27]{c}{line-size/line-size.c}
+      \caption{Loop over \mintinline{text}{array} with increment \mintinline{text}{STEP}}
+      \label{lst:line-size}
+   \end{listing}
+\end{comment}
 
 \begin{figure}
    \centering
@@ -108,14 +118,48 @@ and so on~\cite[cf.][example 2]{gallery}.
    \label{fig:line-size}
 \end{figure}
 
-% TODO: talk about how the term cache line is commonly conflated to mean an appropriately
-% sized and *aligned* block of main memory that can be loaded into a cache line.  This is
-% how it works, right?  Or can we load blocks starting at arbitrary addresses into a cache
-% line?  Or maybe we can take memory that isn't even contiguous?
-%
-% Maybe talk about the 64-bit bus width and burst mode as well.  And maybe about how a
-% write requires a read if we only write part of a cache line and the optimization of
+% Talk about how the term cache line is commonly conflated to mean an appropriately sized
+% and *aligned* block of main memory that can be loaded into a cache line.  This is how it
+% works, right?  Or can we load blocks starting at arbitrary addresses into a cache line?
+% One could even imagine loading memory that isn't even contiguous.  Most sources don't
+% seem to clear any of this up.  See <https://stackoverflow.com/q/3928995> ("How do cache
+% lines work?")
+\begin{comment}
+   The term cache line is also used to refer to \alts{identically, appropriately} sized
+   blocks in main memory.
+   % that may be loaded into cache.
+   These blocks are fixed:
+   % I.e., each byte in main memory falls exactly into one cache line.
+   % The boundaries
+
+   Cache lines in main memory are fixed.
+   % Data is not loaded starting from arbitrary addresses, but only from addresses that
+   % are multiples of the cache line size.
+   Data blocks that are loaded don't start at arbitrary addresses, but at multiples of the
+   cache line size.
+\end{comment}
+% See <https://en.wikipedia.org/wiki/Partition_of_a_set>.  XXX: I feel like there's some
+% kind of conflation of ideas going on here.
+Both cache and main memory can be thought of as being partitioned%
+% \footnote{%
+%    In the set-theoretic sense
+% }
+\ (in the set-theoretic\x{al}\ sense) % https://en.wiktionary.org/wiki/set-theoretic
+into \alts[3]{cache line-sized blocks, blocks of that size, cache lines}.  \alts[2]{{That
+is, d}, D}ata is \alts{not, neither} \alts{read or written, loaded} starting from
+arbitrary main memory addresses,
+% ...nor is it loaded into arbitrarily aligned blocks in cache.
+but only from addresses that are multiples of the cache line size.
+% The starting address will by a multiple of the cache line size.
+
+% TODO: this probably has some implications about aligning data.
+
+% TODO: maybe talk about the 64-bit bus width and burst mode as well.  And maybe about how
+% a write requires a read if we only write part of a cache line and the optimization of
 % adding dummy writes (I think Andrei talked about this).
+%
+% [1]: https://stackoverflow.com/q/39182060 "Why isn't there a data bus which is as wide
+%      as the cache line size?"
 
 \subsection{Prefetching}
 \label{sec:prefetch}

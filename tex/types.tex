@@ -89,6 +89,7 @@ follows, are given by \textcite{ithare-cycles}.}%
 
 % > [Instruction] cache is much less problematic than the data cache.
 %      -- Drepper, p. 31
+% TODO: move this paragraph?
 The biggest target for optimizations is the data cache.  \say{[Instruction] cache is much
 less problematic}~\cite[31]{drepper2007} and optimizations for data and instruction cache
 tend to improve \gls{tlb} usage as well%
@@ -116,6 +117,20 @@ To do this
 circular, singly linked list where every element except the last \alts{points to a, has a}
 random successor.  When compiled with \mintinline{text}{-DBASELINE}, only this
 initialization is done.
+
+\begin{comment}
+   We will see why this measurement was conducted with random instead of sequential
+   accesses in \cref{sec:prefetch}.
+
+   \Cref{sec:prefetch} \alts{explains, will explain} the reason for \x{going through the
+   trouble of} \alts{using, conducting} random accesses instead of just reading the array
+   sequentially\x{for this measurement}.
+\end{comment}
+\alts{We use random accesses because,
+      The reason for using random accesses is that}
+the CPU will detect and optimize sequential access by a technique called
+\emph{prefetching} discussed in \cref{sec:prefetch}, which would prevent us from
+\alts{determining, assessing} access times.
 
 % XXX: hacks!  Use the figure environment so that LaTeX won't display this listing after
 % the plot showing the results of profiling it.  "LaTeX [only] keeps all floats of the
@@ -165,8 +180,8 @@ initialization is done.
 % \Cref{fig:access-times} shows the \alts{difference, deltas} of CPU cycles used when and
 % when not having defined \mintinline{text}{BASELINE}.
 \Cref{fig:access-times} shows the extra CPU cycles used by \cref{lst:access-times}
-\alts[2]{above, in addition to, compared to} the \mintinline{text}{BASELINE} version for
-different array sizes.
+\alts{in addition to, above, compared to, relative to} the \mintinline{text}{BASELINE}
+version for different array sizes.
 That is, only the cycles used by the main loop are \alts{given, counted}, not those for
 initialization.  I divided by \mintinline{text}{N} to get the cycles spent \alts{per, on
 each} loop iteration.
@@ -175,21 +190,21 @@ Up to 32 KiB, each access takes almost exactly 3 cycles.%
 \footnote{The numerical results are shown in \vref{tab:access-times}.}
 This is the \gls{l1d} access \alts{time, latency}.  At 32 KiB (the size of the \gls{l1d})
 the time increases to about 3.4 cycles.  This is not surprising since the cache is shared
-with other processes and the operating system, so some of our data gets evicted.  The
-first dramatic increase happens at 64 KiB followed by smaller increases at 128 and 256
+with other processes and the operating system, so some of our data gets \emph{evicted}.
+The first dramatic increase happens at 64 KiB followed by smaller increases at 128 and 256
 KiB.  I suspect we are seeing a mixture of \gls{l2} and \gls{l1d} accesses, with less and
-less \gls{l1d} hits and an \gls{l2} access time of around 25 cycles.
+less \gls{l1d} hits and an \gls{l2} access time \x{of} around 25 cycles.
 
-The values from 512 KiB to 128 MiB \alts{exhibit, follow} a similar pattern.  The relative
-increase when the array size matches that of the \gls{l2}, 512 KiB, is \alts{greater, more
-striking} than for the \gls{l1d} before; possibly because \gls{l2} is a unified cache that
-also holds instructions.  Eventually, more and more accesses go to main memory,
-\alts{causing, incurring} delays of up to 200 cycles~\cite[cf.][17]{drepper2007}.
+The values from 512 KiB (the size of the \gls{l2}) to 128 MiB \alts{exhibit, follow} a
+similar pattern.  The relative increase when the array size matches that of the \gls{l2}
+is \alts{greater, more striking} than for the \gls{l1d} before; possibly because \gls{l2}
+is a unified cache that also holds instructions.  Eventually, more and more accesses go to
+main memory, \alts{causing, incurring} delays of up to 200
+cycles~\cite[cf.][\pno~17, figure 3.4]{drepper2007}.
 
-\Cref{sec:prefetch} will explain the reason for going through the trouble of conducting
-random accesses instead of just reading the array sequentially for this measurement.
-% We will see why this measurement was conducted with random instead of sequential
-% accesses in \cref{sec:prefetch}.
+% FOLDOC has an entry on 'working set'.
+\alts[2]{{Evidently,}, The data suggests that} keeping the \emph{working set} a process
+uses during a time interval small can yield dramatic performance improvements.
 
 % XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
 % interrupting the source code listing.

@@ -1,0 +1,15 @@
+\subsection{Spatial Locality}
+Data is loaded from bigger, slower memory into smaller, faster memory (e.g. from main
+memory into the CPU cache) in \emph{blocks}.
+
+Moving down the memory hierarchy, access latencies increase faster than the
+\emph{obtainable} bandwidth: \say{[w]e can still achieve large bandwidths by accessing
+many close-by bits together [...].  Access to large \emph{blocks} [emphasis added] of
+memory is almost as fast as access to a single bit},~\cite[2]{afmh}.
+
+% TODO: move this.
+% Consider the program shown in \cref{lst:array-sum}.  It repeatedly loops over an array
+% to compute the sum of its elements.  Before exiting, it prints the CPU time spend
+% summing the array.
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

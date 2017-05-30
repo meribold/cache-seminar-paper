@@ -12,10 +12,8 @@ the array is no longer shuffled.
 
 \begin{figure}
    \centering
-   \begin{tikzpicture}
-      \datavisualization[array size vs cycles plot]
-         data [read from file=seq-access-times/access-times.csv, separator=\space];
-   \end{tikzpicture}
+   \tikz \datavisualization[array size vs cycles plot]
+      data [read from file=seq-access-times/access-times.csv, separator=\space];
    \caption{Access Times for Sequential Reads}
    \label{fig:seq-access-times}
 \end{figure}

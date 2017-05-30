@@ -13,25 +13,7 @@ the array is no longer shuffled.
 \begin{figure}
    \centering
    \begin{tikzpicture}
-      \datavisualization[%
-         scientific axes=clean,
-         x axis={%
-            logarithmic,
-            ticks={major={
-               /pgf/number format/int detect,
-               at={
-                  2048 as 2, 8192 as 8, 32768 as \textbf{32}, 131072 as 128,
-                  524288 as \textbf{512}, 2097152 as \pgfmathprintnumber{2048},
-                  8388608 as \pgfmathprintnumber{8192},
-                  33554432 as \pgfmathprintnumber{32768},
-                  134217728 as \pgfmathprintnumber{131072},
-            }}},
-            grid={at={32768, 524288}},
-            label={Array Size (KiB)},
-            length=0.8\textwidth},
-         y axis={include value=0, label={Cycles / Iteration}, length=6cm, grid=at ticks},
-         visualize as scatter,
-         scatter={style={mark=*, mark options={scale=.65}}}]
+      \datavisualization[array size vs cycles plot]
          data [read from file=seq-access-times/access-times.csv, separator=\space];
    \end{tikzpicture}
    \caption{Access Times for Sequential Reads}

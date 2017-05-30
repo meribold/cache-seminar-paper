@@ -1,6 +1,7 @@
 \section{Amazing Data}
 \label{app:data}
 
+% TODO: put this in a separate file and include it in the preamble?
 \pgfplotstableset{
    every head row/.style={before row=\toprule, after row=\midrule},
    every last row/.style={after row=\bottomrule},
@@ -29,19 +30,8 @@
       % column type=c, dec sep align,
       % fixed, fixed zerofill, precision=3,
    },
-}
-
-\begin{center}
-   \pgfplotstabletypeset[
-      % See <https://tex.stackexchange.com/q/131081/#comment311347_137554>.
-      assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
-      % every head row/.style={%
-         % output empty row,
-         % before row={%
-         %    \\\toprule
-         %    Array Sizes (KiB) & \multicolumn{2}{c}{Cycles / Iteration} \\
-         % },
-      % },
+   % Define a complete table style.
+   array size vs cycles/.style={
       columns={x, y, x, y},
       columns/x/.style={array size},
       columns/y/.style={cycles},
@@ -57,6 +47,21 @@
          column type={S[table-format=6.0]},
       },
       display columns/3/.style={select equal part entry of={1}{2}},
+   },
+}
+
+\begin{center}
+   \pgfplotstabletypeset[
+      % See <https://tex.stackexchange.com/q/131081/#comment311347_137554>.
+      assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
+      % every head row/.style={%
+         % output empty row,
+         % before row={%
+         %    \\\toprule
+         %    Array Sizes (KiB) & \multicolumn{2}{c}{Cycles / Iteration} \\
+         % },
+      % },
+      array size vs cycles,
    ]{access-times/access-times.csv}
    \captionof{table}{Access Times for Random Reads}
    \label{tab:access-times}
@@ -65,19 +70,7 @@
 \begin{center}
    \pgfplotstabletypeset[
       assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
-      columns={x, y, x, y},
-      columns/x/.style={array size},
-      columns/y/.style={cycles},
-      display columns/0/.style={
-         select equal part entry of={0}{2},
-         column type={S[table-format=3.0]},
-      },
-      display columns/1/.style={select equal part entry of={0}{2}},
-      display columns/2/.style={
-         select equal part entry of={1}{2},
-         column type={S[table-format=6.0]},
-      },
-      display columns/3/.style={select equal part entry of={1}{2}},
+      array size vs cycles,
    ]{seq-access-times/access-times.csv}
    \captionof{table}{Access Times for Sequential Reads}
    \label{tab:seq-access-times}

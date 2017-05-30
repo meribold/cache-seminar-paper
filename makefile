@@ -61,14 +61,6 @@ access-times/access-times.out: $(access-time-results)
 seq-access-times/access-times.out: $(seq-access-time-results)
 	@$(merge-out-files)
 
-# access-times/access-times.out: access-times/access-times.c
-# 	@# Working sets from 256 bytes to 32 MiB.
-# 	for ((i=5; i<=23; i=i+1)); do \
-# 	   size=$$((2**i)); printf "Bytes: $$((8*size))\n"; \
-# 	   gcc -O2 -DSIZE=$$size -DBASELINE '$<' && \
-# 	   sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out; \
-# 	done | tee '$@'
-
 # Static pattern rule (https://www.gnu.org/software/make/manual/make.html#Static-Pattern).
 # The `sed` command joins every 3 lines (https://stackoverflow.com/a/16906481).  The
 # second `awk` command subtracts the third from the second column.

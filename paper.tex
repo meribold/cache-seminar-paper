@@ -187,33 +187,6 @@ The \gls{emm} is a widely used
 % TODO: is it?
 extension of the \gls{ram} model.
 
-\begin{listing}
-   \inputminted[firstline=8]{c}{array-sum/array-sum.c}
-   \caption{This is C code}
-   \label{lst:array-sum}
-\end{listing}
-
-% This program is likely to have excellent spatial locality: the array...
-
-% \begin{figure}[htb]
-\begin{figure}
-   \centering
-   \begin{tikzpicture}
-      \datavisualization
-      [scientific axes=clean,
-       x axis={label={Array size (KiB)}, length=0.8\textwidth},
-       y axis={label={Processor time (ms)}, length=6cm},
-       visualize as scatter,
-       scatter={style={mark=*, mark options={scale=.65}}}]
-         % See <https://tex.stackexchange.com/q/198323>.
-         data [read from file=array-sum/size-time.csv, separator=\space];
-   \end{tikzpicture}
-   \caption{This figure took way too long to create}
-   \label{fig:array-sum}
-\end{figure}
-
-% See \cref{fig:array-sum}.  What's going on here?
-
 \section{Cache-Oblivious Algorithms} % Cache-Oblivious Model
 
 \section{Parallel Computing}

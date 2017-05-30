@@ -1,4 +1,4 @@
-// vim: set tw=72 sts=-1 sw=3 et cms=//%s
+// vim: tw=72 sts=-1 sw=3 et cms=//%s
 
 #include <stdint.h>  // int64_t, size_t
 #include <stdio.h>   // printf

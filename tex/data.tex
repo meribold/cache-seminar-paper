@@ -52,8 +52,51 @@
       },
       display columns/3/.style={select equal part entry of={1}{2}},
    ]{access-times/access-times.csv}
-   \captionof{table}{Amazing Data}
+   \captionof{table}{Access Times for Random Reads}
    \label{tab:access-times}
+\end{center}
+
+% FIXME: DRY!
+\begin{center}
+   \pgfplotstabletypeset[
+      assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
+      every head row/.style={%
+         before row=\toprule,
+         after row=\midrule,
+      },
+      every last row/.style={%
+         after row=\bottomrule,
+      },
+      columns={x, y, x, y},
+      columns/x/.style={
+         assign column name={Array Size (KiB)},
+         numeric as string type,
+         preproc cell content/.code={%
+            \pgfkeysgetvalue{/pgfplots/table/@cell content}\a
+            \newcount\b
+            \b=\number\a
+            \divide\b by 1024
+            \pgfkeyssetvalue{/pgfplots/table/@cell content}{\the\b}
+         },
+      },
+      columns/y/.style={
+         assign column name={Cycles / Iteration},
+         string type,
+         column type={S[round-mode=places, round-precision=2]},
+      },
+      display columns/0/.style={
+         select equal part entry of={0}{2},
+         column type={S[table-format=3.0]},
+      },
+      display columns/1/.style={select equal part entry of={0}{2}},
+      display columns/2/.style={
+         select equal part entry of={1}{2},
+         column type={S[table-format=6.0]},
+      },
+      display columns/3/.style={select equal part entry of={1}{2}},
+   ]{seq-access-times/access-times.csv}
+   \captionof{table}{Access Times for Sequential Reads}
+   \label{tab:seq-access-times}
 \end{center}
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

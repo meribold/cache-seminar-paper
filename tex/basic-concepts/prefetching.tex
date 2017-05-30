@@ -1,10 +1,17 @@
 \subsection{Prefetching}
 \label{sec:prefetch}
-% http://ithare.com/c-for-games-performance-allocations-and-data-locality/
-% http://ithare.com/c-for-games-performance-allocations-and-data-locality/2/
-% https://en.wikipedia.org/wiki/Cache_prefetching
 
-\emph{Cache prefetching} is a technique by which CPUs recognize predictable access
-patterns (for instance sequential access to an array)... TODO
+% \cref{lst:TODO} is
+Consider
+a simplified version of \cref{lst:access-times} that, instead of using random accesses,
+simply walks over the array sequentially.  It still follows the pointers to do this, but
+the array is no longer shuffled.
+
+% \emph{Cache prefetching} is a technique by which CPUs recognize predictable access
+% patterns (for instance sequential access to an array)... TODO
+
+% [1]: http://ithare.com/c-for-games-performance-allocations-and-data-locality/
+% [2]: http://ithare.com/c-for-games-performance-allocations-and-data-locality/2/
+% [3]: https://en.wikipedia.org/wiki/Cache_prefetching
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

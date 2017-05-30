@@ -57,8 +57,10 @@
 % [5]: https://en.wikibooks.org/wiki/LaTeX/Tables#Professional_tables
 
 % Use a consitent group/thousands separator for siunitx and pgf.
-\pgfkeys{/pgf/number format/.cd,
-   set thousands separator=\,
+\pgfkeys{%
+   /pgf/number format/.cd,
+   1000 sep={\,},
+   min exponent for 1000 sep=4,
 }
 % \sisetup{
 %    group-separator={,}
@@ -170,9 +172,10 @@
 
 \input{tex/intro}
 \input{tex/motivation}
+% \section{Hardware Caches} % Cache, Structure of Caches
+\input{tex/operation}
 \input{tex/types}
-\input{tex/basic-concepts}
-
+\input{tex/key-concepts}
 \section{Example: \texttt{std::vector} vs. \texttt{std::list}}
 \label{sec:vvl}
 

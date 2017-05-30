@@ -78,12 +78,21 @@ follows, are given by \textcite{ithare-cycles}.}%
    % [\ppno~16, 20--21, fig. 3.10]{drepper2007}
 }
 
-\begin{center}
-   \begin{tabular}{ r | c c c c }
-             & \gls{l1d} & \gls{l2} & \gls{l3} & Main Memory \\ \hline
-      Cycles & 3--4      & 10--12   & 30--70   & 100--150
-   \end{tabular}
-\end{center}
+% \begin{center}
+%    \begin{tabular}{ r | c c c c }
+%              & \gls{l1d} & \gls{l2} & \gls{l3} & Main Memory \\ \hline
+%       Cycles & 3--4      & 10--12   & 30--70   & 100--150
+%    \end{tabular}
+% \end{center}
+\begin{center}\begin{tabular}{ r c c c c }
+   \toprule
+          & \gls{l1d} & \gls{l2} & \gls{l3} & Main Memory \\
+   \cmidrule[\lightrulewidth](l){2-5}
+   % \midrule
+   Cycles & 3--4      & 10--12   & 30--70   & 100--150 \\
+   \bottomrule
+\end{tabular}\end{center}
+
 %
 % These are taken from~\textcite{ithare-cycles} but comparable numbers are given by
 
@@ -193,7 +202,7 @@ the time increases to about 3.4 cycles.  This is not surprising since the cache 
 with other processes and the operating system, so some of our data gets \emph{evicted}.
 The first dramatic increase happens at 64 KiB followed by smaller increases at 128 and 256
 KiB.  I suspect we are seeing a mixture of \gls{l2} and \gls{l1d} accesses, with less and
-less \gls{l1d} hits and an \gls{l2} access time \x{of} around 25 cycles.
+less \gls{l1d} \emph{hits} and an \gls{l2} access time \x{of} around 25 cycles.
 
 The values from 512 KiB (the size of the \gls{l2}) to 128 MiB \alts{exhibit, follow} a
 similar pattern.  The relative increase when the array size matches that of the \gls{l2}
@@ -208,7 +217,7 @@ uses during a time interval small can yield dramatic performance improvements.
 
 % XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
 % interrupting the source code listing.
-\begin{figure}[hbp]
+\begin{figure}%[hbp]
    \centering
    \begin{tikzpicture}
       \datavisualization[%

@@ -58,10 +58,13 @@ My E-450 CPU is no exception and both of its data caches have 64-byte cache line
 We can verify this quite easily.  Consider \cref{lst:line-size}.  It loops over an array
 with an increment given at compile time as \texttt{STEP} and measures the processor time.
 \begin{center}
+% \begin{listing}
    \inputminted[firstline=27]{c}{line-size/line-size.c}
+   % \caption{%
    \captionof{listing}{%
       Loop over \mintinline{text}{array} with increment \mintinline{text}{STEP}}
    \label{lst:line-size}
+% \end{listing}
 \end{center}
 The results for different values of \texttt{STEP} are plotted in \cref{fig:line-size}.
 % Starting from a step size of 16, the time roughly halves every time the step size is
@@ -79,38 +82,6 @@ are 128 bytes apart,%
 \footnote{16 \texttt{int64\_t} values of 8 bytes each}
 so every other cache line is skipped.  At 32, three out of four cache lines are skipped,
 and so on~\cite[cf.][example 2]{gallery}.
-
-\begin{comment}
-   \begin{listing}
-      \inputminted[firstline=27]{c}{line-size/line-size.c}
-      \caption{Loop over \mintinline{text}{array} with increment \mintinline{text}{STEP}}
-      \label{lst:line-size}
-   \end{listing}
-\end{comment}
-
-\begin{figure}
-   \centering
-   \begin{tikzpicture}
-      \datavisualization
-      [scientific axes=clean,
-       x axis={logarithmic,
-               ticks={major={at={1 as \textbf{1}, 2 as \textbf{2}, 4 as \textbf{4},
-                                 8 as \textbf{8}, 16, 64, 256, 1024}},
-                      minor={at={32, 128, 512}}},
-               label={Step size}, length=0.8\textwidth},
-       y axis={logarithmic,
-               % ticks={major={at={4, 16, 64, 256}}, minor={at={8, 32, 128}}},
-               % ticks={major={at={6, 12, 24, 48, 92, 184}}},
-               ticks={major={at={5, 10, 20, 40, 80, 160, 320}}},
-               label={Processor time (ms)}, length=6cm},
-       visualize as scatter,
-       scatter={style={mark=*, mark options={scale=.65}}}]
-         % See <https://tex.stackexchange.com/q/198323>.
-         data [read from file=line-size/line-size.csv, separator=\space];
-   \end{tikzpicture}
-   \caption{Processor times for running \cref{lst:line-size}}
-   \label{fig:line-size}
-\end{figure}
 
 % Talk about how the term cache line is commonly conflated to mean an appropriately sized
 % and *aligned* block of main memory that can be loaded into a cache line.  This is how it
@@ -146,6 +117,13 @@ arbitrary main memory addresses,
 but only from addresses that are multiples of the cache line size.
 % The starting address will by a multiple of the cache line size.
 
+% TODO.  Part of the memory address partially determines which cache line is used.  The
+% binary logarithm of the number of cache sets is the amount of bits required to identify
+% the cache set.  The specific line used from that set depends on the replacement policy.
+% A number of least significant (lowest-order, right-most) bits are ignored, since all
+% addresses that only differ in those go into the same cache line.  If the line size is
+% 64, log_2(64) = 6 bits are ignored.  See Drepper, page 15.
+
 % TODO: this probably has some implications about aligning data.
 
 % TODO: maybe talk about the 64-bit bus width and burst mode as well.  And maybe about how
@@ -154,5 +132,31 @@ but only from addresses that are multiples of the cache line size.
 %
 % [1]: https://stackoverflow.com/q/39182060 "Why isn't there a data bus which is as wide
 %      as the cache line size?"
+
+% XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
+% interrupting the source code listing.
+\begin{figure}[hbp]
+   \centering
+   \begin{tikzpicture}
+      \datavisualization
+      [scientific axes=clean,
+       x axis={logarithmic,
+               ticks={major={at={1 as \textbf{1}, 2 as \textbf{2}, 4 as \textbf{4},
+                                 8 as \textbf{8}, 16, 64, 256, 1024}},
+                      minor={at={32, 128, 512}}},
+               label={Step size}, length=0.8\textwidth},
+       y axis={logarithmic,
+               % ticks={major={at={4, 16, 64, 256}}, minor={at={8, 32, 128}}},
+               % ticks={major={at={6, 12, 24, 48, 92, 184}}},
+               ticks={major={at={10, 20, 40, 80, 160, 320}}},
+               label={Processor time (ms)}, length=6cm},
+       visualize as scatter,
+       scatter={style={mark=*, mark options={scale=.65}}}]
+         % See <https://tex.stackexchange.com/q/198323>.
+         data [read from file=line-size/line-size.csv, separator=\space];
+   \end{tikzpicture}
+   \caption{Processor times for running \cref{lst:line-size}}
+   \label{fig:line-size}
+\end{figure}
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

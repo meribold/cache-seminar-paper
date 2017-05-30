@@ -1,0 +1,25 @@
+\section{Key Concepts}
+%        Basic Principles
+%        Key Terms (that sounds boring)
+
+Some architectural properties of hardware caches lead to important concepts for using them
+effectively.
+
+\input{tex/basic-concepts/lines.tex}
+% TODO: make this the first subsection?
+\input{tex/basic-concepts/prefetching.tex}
+% TODO: merge the next two section into one: "Locality of Reference"?  What about *data
+% locality*?
+\input{tex/basic-concepts/spatial-locality.tex}
+\input{tex/basic-concepts/temporal-locality.tex}
+% This can probably be merged with the locality sections.
+\input{tex/basic-concepts/access-pattern.tex}
+\input{tex/basic-concepts/associativity.tex}
+% Associativity has to be explained before conflict misses.
+\input{tex/basic-concepts/miss-types.tex}
+
+% TODO: section about the structure of cache entries?  Tag, data block, and flag bits
+% ("dirty" bit and "valid" bit).  See
+% <https://en.wikipedia.org/wiki/CPU_cache#Cache_entry_structure>.
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

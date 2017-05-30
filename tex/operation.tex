@@ -1,0 +1,81 @@
+\section{Cache Operation Overview}
+%        Cache Operation Synopsis
+%        Cache Operation Outline
+%        Cache Operation Basics
+%        Operation
+%        High-level Cache Operation
+%        Basics of Cache Operation
+%        Basic Cache Operation
+
+% > When the [..] CPU [...] needs to access data presumed to exist in the backing store,
+% > it first checks the cache.
+%      -- https://en.wikipedia.org/wiki/Cache_(computing)#Operation
+%
+% > When the processor needs to read from or write to a location in main memory, it first
+% > checks whether a copy of that data is in the cache.
+%      -- https://en.wikipedia.org/wiki/CPU_cache
+
+% > When the processor needs to read or write a location in main memory, it first checks
+% > for a corresponding entry in the cache.  The cache checks for the contents of the
+% > requested memory location in any cache lines that might contain that address.
+%      -- https://en.wikipedia.org/wiki/CPU_cache
+
+% > If the CPU needs a data word the caches are searched first.
+%      -- Drepper, section 3.2: "Cache Operation at High Level", page 15
+%
+% > A cache hit occurs when the requested data can be found in a cache, while a cache miss
+% > occurs when it cannot.
+%      -- https://en.wikipedia.org/wiki/Cache_(computing)
+
+Whenever
+\alts{%
+  a program \alts{requests, accesses} a memory address,
+  {\alts{a program requires, accessing} data at some address,},
+}
+the CPU will search its caches. % It has to do a search, in general.
+If the \alts{location is present\x{in cache}, location is cached, data is present}, a
+\emph{cache hit} occurs.  Otherwise, the result is a \emph{cache miss} and
+% If unsuccessful, a \emph{cache miss} occurs and
+the next level of the memory hierarchy, which could be another CPU cache, is tried.
+% we fall back to the next level of the memory hierarchy (which could be another CPU cache).
+
+% > By default all data read or written by the CPU cores is stored in the cache.
+%      -- Drepper, section 3.2: "Cache Operation at High Level", page 15
+Unless \alts{explicitly, specifically, deliberately} \alts{prevented, disabled},
+% TODO: how is it prevented?
+% \alts{{ and}, {,}}
+% \alts{%
+%   with some exceptions only \alts{relevant to, concerning} OS programming,
+%   with some exceptions in OS programming,
+%   with no exceptions outside of OS programming,
+%   as far as application programmer's are concerned,
+%   in the context of non-systems programming,
+%   ignoring OS programming,
+%   disregarding OS programming,
+% },
+\alts{%
+  the CPU brings all accessed data into cache,
+  the CPU will cache all accessed data,
+  all accessed data will be loaded into cached,
+  all memory accessed is cached,
+}
+(with some exceptions only relevant to OS programming)%
+~\cite[15]{drepper2007}.
+% > To be able to load new data in a cache it is almost always first necessary to make
+% > room in the cache.
+%      -- Drepper, section 3.2: "Cache Operation at High Level", page 16
+This
+happens in response to cache misses and
+will\x{almost always},
+\alts{much more often than not, in the vast majority of cases}, cause another cache entry
+to be \emph{evicted} and replaced~\cite[16]{drepper2007}.
+
+% TODO.  Writes are more complicated than this, right?  There's some kind of buffering, I
+% think.
+
+% TODO: talk about cache replacement strategies?  See
+% <https://en.wikipedia.org/wiki/Cache_replacement_policies>
+
+% TODO: this section is very short.
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

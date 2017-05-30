@@ -1,44 +1,50 @@
 \section{Amazing Data}
 \label{app:data}
 
+\pgfplotstableset{
+   every head row/.style={before row=\toprule, after row=\midrule},
+   every last row/.style={after row=\bottomrule},
+   % Define a reusable custom style called 'array size' for a table column of array sizes
+   % in KiB.  The syntax is the same as passing the key-value pairs directly to
+   % `columns/<col name>/.style`.
+   array size/.style={
+      assign column name={Array Size (KiB)},
+      numeric as string type,
+      % Using `divide by=1024` or `preproc/expr={##1/1024}` performs floating-point
+      % math and introduces errors.  This abomination hacked together by trial and
+      % error doesn't.
+      preproc cell content/.code={%
+         \pgfkeysgetvalue{/pgfplots/table/@cell content}\a
+         \newcount\b
+         \b=\number\a
+         \divide\b by 1024
+         \pgfkeyssetvalue{/pgfplots/table/@cell content}{\the\b}
+      },
+   },
+   % Define a column style called 'cycles'.
+   cycles/.style={
+      assign column name={Cycles / Iteration},
+      string type,
+      column type={S[round-mode=places, round-precision=2]},
+      % column type=c, dec sep align,
+      % fixed, fixed zerofill, precision=3,
+   },
+}
+
 \begin{center}
    \pgfplotstabletypeset[
       % See <https://tex.stackexchange.com/q/131081/#comment311347_137554>.
       assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
-      every head row/.style={%
-         before row=\toprule,
+      % every head row/.style={%
          % output empty row,
          % before row={%
          %    \\\toprule
          %    Array Sizes (KiB) & \multicolumn{2}{c}{Cycles / Iteration} \\
          % },
-         after row=\midrule,
-      },
-      every last row/.style={%
-         after row=\bottomrule,
-      },
+      % },
       columns={x, y, x, y},
-      columns/x/.style={
-         assign column name={Array Size (KiB)},
-         numeric as string type,
-         % Using `divide by=1024` or `preproc/expr={##1/1024}` performs floating-point
-         % math and introduces errors.  This abomination hacked together by trial and
-         % error doesn't.
-         preproc cell content/.code={%
-            \pgfkeysgetvalue{/pgfplots/table/@cell content}\a
-            \newcount\b
-            \b=\number\a
-            \divide\b by 1024
-            \pgfkeyssetvalue{/pgfplots/table/@cell content}{\the\b}
-         },
-      },
-      columns/y/.style={
-         assign column name={Cycles / Iteration},
-         string type,
-         column type={S[round-mode=places, round-precision=2]},
-         % column type=c, dec sep align,
-         % fixed, fixed zerofill, precision=3,
-      },
+      columns/x/.style={array size},
+      columns/y/.style={cycles},
       % Split the table into two (super?) columns.  See page 42 and 43 of the
       % pgfplotstable manual.
       display columns/0/.style={
@@ -56,34 +62,12 @@
    \label{tab:access-times}
 \end{center}
 
-% FIXME: DRY!
 \begin{center}
    \pgfplotstabletypeset[
       assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
-      every head row/.style={%
-         before row=\toprule,
-         after row=\midrule,
-      },
-      every last row/.style={%
-         after row=\bottomrule,
-      },
       columns={x, y, x, y},
-      columns/x/.style={
-         assign column name={Array Size (KiB)},
-         numeric as string type,
-         preproc cell content/.code={%
-            \pgfkeysgetvalue{/pgfplots/table/@cell content}\a
-            \newcount\b
-            \b=\number\a
-            \divide\b by 1024
-            \pgfkeyssetvalue{/pgfplots/table/@cell content}{\the\b}
-         },
-      },
-      columns/y/.style={
-         assign column name={Cycles / Iteration},
-         string type,
-         column type={S[round-mode=places, round-precision=2]},
-      },
+      columns/x/.style={array size},
+      columns/y/.style={cycles},
       display columns/0/.style={
          select equal part entry of={0}{2},
          column type={S[table-format=3.0]},

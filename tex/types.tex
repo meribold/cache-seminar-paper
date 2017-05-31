@@ -215,29 +215,68 @@ cycles~\cite[cf.][\pno~17, figure 3.4]{drepper2007}.
 \alts[2]{{Evidently,}, The data suggests that} keeping the \emph{working set} a process
 uses during a time interval small can yield dramatic performance improvements.
 
+% Perform an integer division by 1024 on an argument in the format (scientific notation)
+% provided to the `tick typesetting` key.  Amazing.  This took me half a day to write.
+% See page 805 of the TikZ and PGF manual (version 3.0.1a).  We don't use
+% `\pgfmathprintnumberto` because its result is in math mode, e.g. `$42$`.
+% `pgfmathfloatparsenumber` allows arbitrary precision.
+\def\kibtypesetter#1{%
+   % \pgfmathprintnumberto[int trunc,1000 sep={}]{#1}{\a}
+   \pgfmathfloatparsenumber{#1}%
+   \pgfmathfloattoint{\pgfmathresult}%
+   \pgfmathsetmacro{\a}{\pgfmathresult}%
+   \newcount\b%
+   \b=\number\a%
+   \divide\b by 1024%
+   \pgfmathprintnumber{\the\b}%
+}
+
+\def\emphkibtypesetter#1{%
+   \ensuremath{\mathbf{\kibtypesetter{#1}}}%
+}
+
+% % This uses floating-point division.
+% \def\kibtypesetter#1{%
+%    \pgfmathparse{#1/1024}%
+%    % \pgfmathdivide{#1}{1024}%
+%    % \pgfmathdiv{#1}{1024}%
+%    \pgfmathprintnumber{\pgfmathresult}%
+% }
+
 \tikzdatavisualizationset{
    array size vs cycles plot/.style={
       scientific axes=clean,
       x axis={
          logarithmic,
-         ticks={major={
+         ticks={
             /pgf/number format/int detect,
-            at={
-               2048 as 2, 8192 as 8, 32768 as \textbf{32}, 131072 as 128,
-               524288 as \textbf{512}, 2097152 as \pgfmathprintnumber{2048},
-               8388608 as \pgfmathprintnumber{8192},
-               33554432 as \pgfmathprintnumber{32768},
-               134217728 as \pgfmathprintnumber{131072},
-               % $128\cdot 2^{10}$}}},
-               % $2^{17}$}}},
-         }}},
+            major={
+               tick typesetter/.code=\kibtypesetter{####1},
+               at={
+                  2048, 8192, 131072, 2097152, 8388608, 33554432, 134217728,
+                  32768 as \emphkibtypesetter{32768},
+                  524288 as \emphkibtypesetter{524288},
+                  % 32768 as [style={font=\bfseries}],
+                  % 32768 as \textbf{\kibtypesetter{32768}},
+                  % 32768 as \ensuremath{\mathbf{\kibtypesetter{32768}}},
+                  % 32768 as [tick typesetter/.code=\emphkibtypesetter],
+               },
+            },
+            % minor={
+               % style=black, tick text at low,
+               % tick typesetter/.code={\kibtypesetter{##1}},
+               % at={2048, 8192, 131072, 2097152, 8388608, 33554432, 134217728},
+            % },
+            minor at={4096, 16384, 65536, 262144, 1048576, 4194304, 16777216, 67108864},
+         },
          grid={at={32768, 524288}},
          label={Array Size (KiB)},
-         length=0.8\textwidth},
+         length=0.8\textwidth,
+      },
       y axis={include value=0, label={Cycles / Iteration}, length=6cm, grid=at ticks},
       visualize as scatter,
       scatter={style={mark=*, mark options={scale=.65}}},
-   }
+   },
 }
 
 \begin{figure}

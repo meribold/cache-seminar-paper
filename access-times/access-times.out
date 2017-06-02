@@ -1,0 +1,216 @@
+Bytes: 1024
+1124042344
+
+Events were actively counted for 185080270 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         303,759,501              100.00
+
+Events were actively counted for 1693857 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,151,248                100.00
+Bytes: 2048
+-680164328
+
+Events were actively counted for 189310196 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         303,637,782              100.00
+
+Events were actively counted for 1475655 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,363,890                100.00
+Bytes: 4096
+891900384
+
+Events were actively counted for 185062752 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         302,402,051              100.00
+
+Events were actively counted for 1385266 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,238,287                100.00
+Bytes: 8192
+365038840
+
+Events were actively counted for 187458557 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         303,750,410              100.00
+
+Events were actively counted for 1577199 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,315,684                100.00
+Bytes: 16384
+999429408
+
+Events were actively counted for 185161637 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         302,817,325              100.00
+
+Events were actively counted for 1615952 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,471,502                100.00
+Bytes: 32768
+1804736552
+
+Events were actively counted for 212084998 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         343,107,313              100.00
+
+Events were actively counted for 1783109 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,866,455                100.00
+Bytes: 65536
+-1085361264
+
+Events were actively counted for 925382896 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,515,220,012            100.00
+
+Events were actively counted for 2351922 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         2,891,408                100.00
+Bytes: 131072
+339194464
+
+Events were actively counted for 1.2 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,954,475,076            100.00
+
+Events were actively counted for 2869708 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         3,610,050                100.00
+Bytes: 262144
+-318378448
+
+Events were actively counted for 1.4 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         2,291,631,868            100.00
+
+Events were actively counted for 4413733 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         6,226,853                100.00
+Bytes: 524288
+2004760592
+
+Events were actively counted for 2.2 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         3,582,960,578            100.00
+
+Events were actively counted for 8011195 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         12,038,426               100.00
+Bytes: 1048576
+-143200512
+
+Events were actively counted for 7.3 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         11,941,074,332           100.00
+
+Events were actively counted for 17548456 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         27,710,832               100.00
+Bytes: 2097152
+-1069398112
+
+Events were actively counted for 9.8 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         16,058,790,301           100.00
+
+Events were actively counted for 43661406 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         66,584,920               100.00
+Bytes: 4194304
+1988181992
+
+Events were actively counted for 10.9 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         17,892,387,061           100.00
+
+Events were actively counted for 91148420 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         148,899,394              100.00
+Bytes: 8388608
+1311691408
+
+Events were actively counted for 11.5 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         18,959,739,606           100.00
+
+Events were actively counted for 199547659 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         321,709,707              100.00
+Bytes: 16777216
+-381144312
+
+Events were actively counted for 12.0 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         19,741,332,393           100.00
+
+Events were actively counted for 417692857 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         677,745,609              100.00
+Bytes: 33554432
+-661369936
+
+Events were actively counted for 12.7 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         20,802,377,922           100.00
+
+Events were actively counted for 860352474 nanoseconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         1,404,424,225            100.00
+Bytes: 67108864
+-1523515600
+
+Events were actively counted for 13.7 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         22,442,543,441           100.00
+
+Events were actively counted for 1.8 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         2,871,836,990            100.00
+Bytes: 134217728
+881689992
+
+Events were actively counted for 15.5 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         25,539,466,483           100.00
+
+Events were actively counted for 3.5 seconds.
+Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
+	Event                    Count                    % time counted
+	CPU_CLK_UNHALTED         5,810,851,166            100.00

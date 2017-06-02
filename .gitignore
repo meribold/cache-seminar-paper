@@ -11,7 +11,7 @@
 *.glo
 *.gls
 *.log
-*.out
+/*.out
 *.pdf
 *.toc
 *.xdy

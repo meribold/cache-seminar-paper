@@ -10,6 +10,9 @@ MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 # [1]: https://www.gnu.org/prep/standards/standards.html#Makefile-Basics
 
+CC     ?= gcc
+CFLAGS += -Wall -march=native -O2
+
 .PHONY: all clean
 
 # Set the default goal.
@@ -18,7 +21,8 @@ all: paper.pdf
 texfiles := $(shell find -name '*.tex')
 
 paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib array-sum/size-time.csv \
-   line-size/line-size.csv access-times/access-times.csv seq-access-times/access-times.csv
+   line-size/line-size.csv access-times/access-times.csv \
+   seq-access-times/access-times.csv seq-access-times/step8/access-times.csv
 	latexmk -quiet -pdf -shell-escape '$(@:.pdf=.tex)'
 
 # 1 KiB to 128 MiB.
@@ -30,20 +34,36 @@ access-time-results := $(addsuffix .out,$(access-time-results))
 seq-access-time-results := $(addprefix seq-access-times/, $(working-set-sizes))
 seq-access-time-results := $(addsuffix .out,$(seq-access-time-results))
 
+seq8-access-time-results := $(addprefix seq-access-times/step8/, $(working-set-sizes))
+seq8-access-time-results := $(addsuffix .out,$(seq8-access-time-results))
+
 # See <https://www.gnu.org/software/make/manual/make.html#Canned-Recipes>.
 define profile-access-times =
 size=$(patsubst %.out,%,$(notdir $@)); \
-gcc -O2 -DSIZE=$$((size/8)) '$<' && \
+$(CC) $(CFLAGS) -DSIZE=$$((size/8)) '$<' && \
 sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee '$@' && \
-gcc -O2 -DSIZE=$$((size/8)) -DBASELINE '$<' && \
+$(CC) $(CFLAGS) -DSIZE=$$((size/8)) -DBASELINE '$<' && \
 sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee -a '$@'
 endef
+
+# Counting fails sometimes, in which case the according .out files can be removed like so:
+#    $ ag -l 'Event not counted' seq-access-times/ | xargs rm
+# Then, re-invoking `make` will only regenerate those.  TODO: fix or at least automate
+# this.
 
 $(access-time-results): access-times/access-times.c
 	$(profile-access-times)
 
 $(seq-access-time-results): seq-access-times/access-times.c
 	$(profile-access-times)
+
+# FIXME: DRY.  At least define CHRT and CHRTFLAGS variables or something.
+$(seq8-access-time-results): seq-access-times/access-times.c
+	size=$(patsubst %.out,%,$(notdir $@)); \
+	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DSTEP=8 '$<' && \
+	sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee '$@' && \
+	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DSTEP=8 -DBASELINE '$<' && \
+	sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee -a '$@'
 
 define merge-out-files =
 for f in $^; do \
@@ -61,11 +81,14 @@ access-times/access-times.out: $(access-time-results)
 seq-access-times/access-times.out: $(seq-access-time-results)
 	@$(merge-out-files)
 
+seq-access-times/step8/access-times.out: $(seq8-access-time-results)
+	@$(merge-out-files)
+
 # Static pattern rule (https://www.gnu.org/software/make/manual/make.html#Static-Pattern).
 # The `sed` command joins every 3 lines (https://stackoverflow.com/a/16906481).  The
 # second `awk` command subtracts the third from the second column.
-access-times/access-times.csv seq-access-times/access-times.csv: \
-   %/access-times.csv: %/access-times.out
+access-times/access-times.csv seq-access-times/access-times.csv \
+   seq-access-times/step8/access-times.csv: %/access-times.csv: %/access-times.out
 	echo 'x y total baseline' > '$@'
 	@# awk '/Bytes:/ { printf $$2" " }
 	awk '/Bytes:/ { print $$2 } \
@@ -76,13 +99,13 @@ access-times/access-times.csv seq-access-times/access-times.csv: \
 line-size/line-size.csv: line-size/line-size.c
 	echo 'x y' > '$@'
 	for ((i=0; i<=10; i=i+1)); do \
-	   gcc -O2 -DSTEP=$$((2**i)) '$<' && ./a.out >> '$@'; \
+	   $(CC) $(CFLAGS) -DSTEP=$$((2**i)) '$<' && ./a.out >> '$@'; \
 	done
 
 array-sum/size-time.csv: array-sum/array-sum.c
 	echo 'x y' > '$@'
 	for ((i=0; i<=96; i+=1)); do \
-	   gcc -O2 -DSIZE=$$((i*1024)) '$<' && { ./a.out | head -1 >> '$@';}; \
+	   $(CC) $(CFLAGS) -DSIZE=$$((i*1024)) '$<' && { ./a.out | head -1 >> '$@';}; \
 	done
 
 clean:

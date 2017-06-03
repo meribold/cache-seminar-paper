@@ -10,7 +10,7 @@ MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 # [1]: https://www.gnu.org/prep/standards/standards.html#Makefile-Basics
 
-CC     ?= gcc
+CC     := gcc
 CFLAGS += -Wall -march=native -O2
 OCOUNT := sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED
 
@@ -23,7 +23,8 @@ texfiles := $(shell find -name '*.tex')
 
 paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib array-sum/size-time.csv \
    line-size/line-size.csv access-times/access-times.csv \
-   seq-access-times/access-times.csv seq-access-times/step8/access-times.csv
+   seq-access-times/access-times.csv seq-access-times/cpu-bound/access-times.csv
+   # seq-access-times/step8/access-times.csv
 	latexmk -quiet -pdf -shell-escape '$(@:.pdf=.tex)'
 
 # 1 KiB to 128 MiB.
@@ -34,6 +35,9 @@ access-time-results := $(addsuffix .out,$(access-time-results))
 
 seq-access-time-results := $(addprefix seq-access-times/, $(working-set-sizes))
 seq-access-time-results := $(addsuffix .out,$(seq-access-time-results))
+
+cpu-bound-access-results := $(addprefix seq-access-times/cpu-bound/, $(working-set-sizes))
+cpu-bound-access-results := $(addsuffix .out,$(cpu-bound-access-results))
 
 seq8-access-time-results := $(addprefix seq-access-times/step8/, $(working-set-sizes))
 seq8-access-time-results := $(addsuffix .out,$(seq8-access-time-results))
@@ -55,8 +59,17 @@ endef
 $(access-time-results): access-times/access-times.c
 	$(profile-access-times)
 
+# TODO: add `-fno-prefetch-loop-arrays`?
 $(seq-access-time-results): seq-access-times/access-times.c
 	$(profile-access-times)
+
+# FIXME: DRY.
+$(cpu-bound-access-results): seq-access-times/access-times.c
+	size=$(patsubst %.out,%,$(notdir $@)); \
+	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DWORKWORK '$<' && \
+	$(OCOUNT) ./a.out | tee '$@' && \
+	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DWORKWORK -DBASELINE '$<' && \
+	$(OCOUNT) ./a.out | tee -a '$@'
 
 # FIXME: DRY.
 $(seq8-access-time-results): seq-access-times/access-times.c
@@ -84,6 +97,7 @@ clean:
 
 access-times/access-times.csv : out-files := $(access-time-results)
 seq-access-times/access-times.csv : out-files := $(seq-access-time-results)
+seq-access-times/cpu-bound/access-times.csv : out-files := $(cpu-bound-access-results)
 seq-access-times/step8/access-times.csv : out-files := $(seq8-access-time-results)
 
 .SECONDEXPANSION:
@@ -91,7 +105,8 @@ seq-access-times/step8/access-times.csv : out-files := $(seq8-access-time-result
 # This is inefficient because too many processes are being spawned.  FIXME.  The `sed`
 # command joins every 2 lines (https://stackoverflow.com/a/16906481).
 access-times/access-times.csv seq-access-times/access-times.csv \
-   seq-access-times/step8/access-times.csv: $$(out-files)
+   seq-access-times/step8/access-times.csv seq-access-times/cpu-bound/access-times.csv: \
+   $$(out-files)
 	@echo "Merging profiling data into $@..."
 	@echo 'x y total baseline' > '$@'
 	@for f in $^; do \

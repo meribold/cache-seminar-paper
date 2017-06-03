@@ -1,4 +1,4 @@
-\section{Amazing Data}
+\section{Data}
 \label{app:data}
 
 % TODO: put this in a separate file and include it in the preamble?
@@ -75,5 +75,13 @@
    \captionof{table}{Access Times for Sequential Reads}
    \label{tab:seq-access-times}
 \end{center}
+
+\begin{figure}
+   \centering
+   \tikz \datavisualization[array size vs cycles plot]
+      data [read from file=seq-access-times/cpu-bound/access-times.csv, separator=\space];
+   \caption{CPU-bound Sequential Read Access}
+   \label{fig:seq-access-cpu-bound}
+\end{figure}
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

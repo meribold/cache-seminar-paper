@@ -23,9 +23,13 @@ int main() {
    int64_t dummy = 0;
    struct elem *i = array;
    for (size_t n = 0; n < N; ++n) {
-      // dummy /= 73;
+#ifdef WORKWORK
+      dummy /= 73;
       dummy += (int64_t)i;
-      // dummy /= 8234;
+      dummy /= 8234;
+#else
+      dummy += (int64_t)i;
+#endif
       i = i->next;
    }
    printf("%ld\n", dummy);

@@ -12,6 +12,7 @@ MAKEFLAGS += --no-builtin-rules
 
 CC     ?= gcc
 CFLAGS += -Wall -march=native -O2
+OCOUNT := sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED
 
 .PHONY: all clean
 
@@ -41,9 +42,9 @@ seq8-access-time-results := $(addsuffix .out,$(seq8-access-time-results))
 define profile-access-times =
 size=$(patsubst %.out,%,$(notdir $@)); \
 $(CC) $(CFLAGS) -DSIZE=$$((size/8)) '$<' && \
-sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee '$@' && \
+$(OCOUNT) ./a.out | tee '$@' && \
 $(CC) $(CFLAGS) -DSIZE=$$((size/8)) -DBASELINE '$<' && \
-sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee -a '$@'
+$(OCOUNT) ./a.out | tee -a '$@'
 endef
 
 # Counting fails sometimes, in which case the according .out files can be removed like so:
@@ -57,44 +58,13 @@ $(access-time-results): access-times/access-times.c
 $(seq-access-time-results): seq-access-times/access-times.c
 	$(profile-access-times)
 
-# FIXME: DRY.  At least define CHRT and CHRTFLAGS variables or something.
+# FIXME: DRY.
 $(seq8-access-time-results): seq-access-times/access-times.c
 	size=$(patsubst %.out,%,$(notdir $@)); \
 	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DSTEP=8 '$<' && \
-	sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee '$@' && \
+	$(OCOUNT) ./a.out | tee '$@' && \
 	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DSTEP=8 -DBASELINE '$<' && \
-	sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out | tee -a '$@'
-
-define merge-out-files =
-for f in $^; do \
-   size="$${f##*/}"; size="$${size%.out}"; \
-   printf "Bytes: $$size\n"; \
-   cat "$$f"; \
-done > '$@'
-endef
-
-# Combine all the .out files from runs with different values of `SIZE`.  See
-# <http://wiki.bash-hackers.org/syntax/pe#substring_removal>.
-access-times/access-times.out: $(access-time-results)
-	@$(merge-out-files)
-
-seq-access-times/access-times.out: $(seq-access-time-results)
-	@$(merge-out-files)
-
-seq-access-times/step8/access-times.out: $(seq8-access-time-results)
-	@$(merge-out-files)
-
-# Static pattern rule (https://www.gnu.org/software/make/manual/make.html#Static-Pattern).
-# The `sed` command joins every 3 lines (https://stackoverflow.com/a/16906481).  The
-# second `awk` command subtracts the third from the second column.
-access-times/access-times.csv seq-access-times/access-times.csv \
-   seq-access-times/step8/access-times.csv: %/access-times.csv: %/access-times.out
-	echo 'x y total baseline' > '$@'
-	@# awk '/Bytes:/ { printf $$2" " }
-	awk '/Bytes:/ { print $$2 } \
-	     /CPU_CLK_UNHALTED/ { gsub(/,/,"",$$2); print $$2/100000000 }' '$<' | \
-	sed 'N;N;s/\n/ /g' | \
-	awk '{ print $$1" "$$2 - $$3" "$$2" "$$3 }' >> '$@'
+	$(OCOUNT) ./a.out | tee -a '$@'
 
 line-size/line-size.csv: line-size/line-size.c
 	echo 'x y' > '$@'
@@ -111,5 +81,24 @@ array-sum/size-time.csv: array-sum/array-sum.c
 clean:
 	latexmk -C
 	rm paper.{bbl,run.xml}
+
+access-times/access-times.csv : out-files := $(access-time-results)
+seq-access-times/access-times.csv : out-files := $(seq-access-time-results)
+seq-access-times/step8/access-times.csv : out-files := $(seq8-access-time-results)
+
+.SECONDEXPANSION:
+
+# This is inefficient because too many processes are being spawned.  FIXME.  The `sed`
+# command joins every 2 lines (https://stackoverflow.com/a/16906481).
+access-times/access-times.csv seq-access-times/access-times.csv \
+   seq-access-times/step8/access-times.csv: $$(out-files)
+	@echo "Merging profiling data into $@..."
+	@echo 'x y total baseline' > '$@'
+	@for f in $^; do \
+	   size="$${f##*/}"; size="$${size%.out}"; \
+	   awk '/CPU_CLK_UNHALTED/ { gsub(/,/,"",$$2); print $$2/100000000 }' "$$f" | \
+	   sed 'N;s/\n/ /g' | \
+	   awk '{ print '"$$size"'" "$$1 - $$2" "$$1" "$$2 }'; \
+	done >> '$@'
 
 # vim: tw=90 ts=8 sts=-1 sw=3 noet

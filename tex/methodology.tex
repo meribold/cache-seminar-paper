@@ -1,24 +1,28 @@
+% Performance Analysis; Run Time Analysis; Timing Methodology; Profiling Pitfalls; Run
+% Time Measuring; Benchmarking Methodology; Performance Monitoring
+\section{Profiling Methodology}
+\label{app:meth}
+
 % Programs: `time`, bad; `\time -v`, better; oprofile(1); gprof(1); perf; Valgrind's
 % cachegrind?; ...
 
-% Performance Analysis; Run Time Analysis; Timing Methodology; Profiling Pitfalls; Run
-% Time Measuring; Benchmarking Methodology; Performance Monitoring
-\section{[TODO] Profiling Methodology}
-\label{app:meth}
-
-Plenty of things can go wrong when
-profiling.
-% measuring \alts{execution, run} times.
-These are the ones I was aware of and tried to account for while doing measurements for
-this \article.
+\begin{comment}
+Plenty of things can go wrong when \alts{profiling, measuring \alts{execution, run}
+times}.  These are the ones I was aware of and tried to account for while doing
+measurements for this \article.
 \begin{itemize}
    \item \emph{CPU frequency scaling and boosting}.
       CPU frequencies are usually dynamic these days and automatically adjusted based on
       at least workload and temperature.  This should be disabled when measuring execution
-      times.
+      times.  I used the cpupower(1) program.
+      % See <https://wiki.archlinux.org/index.php/CPU_frequency_scaling> and
+      % <https://github.com/torvalds/linux/tree/master/tools/power/cpupower>.
       \begin{minted}[autogobble]{text}
-         # TODO
+         # cpupower frequency-set -g performance
+         $ ./benchmark
+         # cpupower frequency-set -g ondemand
       \end{minted}
+      %stopzone
       % See [5].  Not a problem when measuring cycles.
    \item \emph{Interrupts and context switches.}  The process being timed has to share
       resources with other processes and the operating system.  A context switch will not
@@ -47,33 +51,82 @@ invalidate them completely.
 General mitigation/alleviation strategy: take the minimum execution time of \alts{all, a
 number of} runs; all noise is additive (TODO: not the one caused by the cache being hot).
 % See [7].
+\end{comment}
+
+All programs were compiled and run on Linux using the \gls{gcc} with
+\mintinline{text}{-O2} and \mintinline{text}{-march=native}.
+% Additionally,
+I disabled CPU frequency scaling with \mintinline{text}{cpupower(1)},
+% See <https://wiki.archlinux.org/index.php/CPU_frequency_scaling>.
+reduced the number of running processes,%
+\footnote{%
+   I stopped Firefox (which added visible noise) and the X server, for example.
+}
+% (e.g. leaving Firefox open in the background added lots of noise),
+and assigned a high priority to the benchmark process with the \mintinline{text}{chrt(1)}
+command.
+
+The \emph{\href{https://github.com/meribold/cache-seminar-paper/blob/master/makefile}
+{makefile}} used to compile and run the measurements as well as the full source code of
+the programs is available \alts{here, on GitHub}:
+\url{https://github.com/meribold/cache-seminar-paper}.
 
 \subsection{Measuring CPU cycles}
 \label{app:cycles}
 
-Frequency scaling isn't a problem here (it is when comparing things to cycles that aren't
-directly proportional to frequency).  I used the \mintinline{text}{ocount(1)} event
-counting tool added to the OProfile (TODO: cite) project in version 0.9.9.  [TODO] This
-uses \emph{hardware performance counters}.
-% `perf(1)` seems to be a newer alternative to OProfile [8].
+% Frequency scaling is still a problem here.  For example, when the program is memory
+% bound, it may take fewer cycles at a lower frequency while completing in the same wall
+% time.  I.e., not everything is proportional to CPU frequency.
+
+% > OProfile leverages the hardware performance counters of the CPU.
+%      -- http://oprofile.sourceforge.net/about/
+
+% > `ocount` is an OProfile tool that can be used to count native hardware events
+% > occurring in [...] a specific application.
+%      -- http://oprofile.sourceforge.net/doc/getting-started-with-ocount.html
+
+% A list of AMD family 14h CPU performance counters is available at [1].  `ophelp(1)` can
+% also be used.
+% [1]: http://oprofile.sourceforge.net/docs/amd-family14h-events.php
+
+I used the \mintinline{text}{ocount(1)} event counting tool added to the
+\citetitle{oprofile}~\cite{oprofile} project in version 0.9.9.
+% `perf(1)` seems to be a newer alternative to OProfile [8].  TODO: use it?
+%
+% > Newer CPU models support a hardware performance counter mode which uses hardware logic
+% > to record events without any active code needed
+%      -- https://en.wikipedia.org/wiki/OProfile
+It uses \emph{hardware performance counters}%
+\footnote{%
+   \url{https://en.wikipedia.org/wiki/Hardware_performance_counter}
+}
+to provide low-overhead performance information without source code modifications.
+\alts{%
+   {Essentially, this is the procedure:},
+   The \x{exact} process is more or less
+}
+
+% diff <(gcc -march=native -E -v - </dev/null 2>&1) <(gcc -E -v - </dev/null 2>&1)
+% gcc -O2 -fno-prefetch-loop-arrays -Q --help=optimizers
 
 \begin{minted}[autogobble]{text}
-   ophelp
-   sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED program
+   $ gcc -march=native -O2 program.c
+   # cpupower frequency-set -g ondemand
+   # chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out
 \end{minted}
+%stopzone
 
-TODO~\cite[78\psqq]{drepper2007}.
+% ~\cite[78\psqq]{drepper2007}.
 
-% [1]:  https://en.wikipedia.org/wiki/Profiling_(computer_programming)
-% [2]:  https://en.wikipedia.org/wiki/Processor_affinity
-% [3]:  https://en.wikipedia.org/wiki/OProfile
-% [4]:  https://en.wikipedia.org/wiki/Perf_(Linux)
-% [5]:  https://github.com/JuliaCI/BenchmarkTools.jl/blob/master/doc/linuxtips.md
-% [6]:  http://stackoverflow.com/q/9006596 "On `/usr/bin/time` for benchmarks and `perf`"
-% [7]:  https://youtu.be/vrfYLlR8X8k "Andrei Alexandrescu - Writing Fast Code"
-% [8]:  http://oprofile-list.sf.narkive.com/rVbJlHdX/oprofile-vs-perf
-% [9]:  http://oprofile.sourceforge.net/about/
-% [10]: https://en.wikipedia.org/wiki/Hardware_performance_counter
-% [11]: http://oprofile.sourceforge.net/doc/index.html
+% [1]: https://en.wikipedia.org/wiki/Profiling_(computer_programming)
+% [2]: https://en.wikipedia.org/wiki/Processor_affinity
+% [3]: https://en.wikipedia.org/wiki/OProfile
+% [4]: https://en.wikipedia.org/wiki/Perf_(Linux)
+% [5]: https://github.com/JuliaCI/BenchmarkTools.jl/blob/master/doc/linuxtips.md
+% [6]: http://stackoverflow.com/q/9006596 "On `/usr/bin/time` for benchmarks and `perf`"
+% [7]: https://youtu.be/vrfYLlR8X8k "Andrei Alexandrescu - Writing Fast Code"
+% [8]: http://oprofile-list.sf.narkive.com/rVbJlHdX/oprofile-vs-perf
+% [9]: https://serverfault.com/q/161008
+%      "What is the difference between renice and chrt commands in Linux?"
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

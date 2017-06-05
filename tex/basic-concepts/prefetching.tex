@@ -1,14 +1,166 @@
 \subsection{Prefetching}
 \label{sec:prefetch}
 
-% \cref{lst:TODO} is
-Consider
-a simplified version of \cref{lst:access-times} that, instead of using random accesses,
-simply walks over the array sequentially.  It still follows the pointers to do this, but
-the array is no longer shuffled.
+Consider a simplified version of \cref{lst:access-times} that, instead of using random
+accesses, simply walks over the array sequentially.  It still follows the pointers to do
+this, but the array is no longer shuffled.  The results of profiling this new program
+\alts{as, in the same way as, just as, like} \cref{lst:access-times} before are
+\alts{plotted, shown} in \cref{fig:seq-access-times}.%
+\footnote{%
+   \Vref{tab:seq-access-times} shows the numerical results.%
+   % Numerical results are shown in \vref{tab:seq-access-times}.%
+}
 
-% \emph{Cache prefetching} is a technique by which CPUs recognize predictable access
-% patterns (for instance sequential access to an array)... TODO
+% XXX: consider possible effects of [software prefetching][1].  I think GCC doesn't enable
+% this type of optimization unless `-fprefetch-loop-arrays` is explicitly specified; i.e.,
+% none of the `-O` levels enables it.  See [2].  XXX: WRONG:
+%
+%    $ gcc -O2 -Q --help=optimizers | grep prefetch
+%    -fprefetch-loop-arrays                [enabled]
+%
+% This is also interesting:
+%
+%    $ diff <(gcc -Q --help=optimizers) <(gcc -O2 -Q --help=optimizers)
+%
+% [1]: https://en.wikipedia.org/wiki/Cache_prefetching#Compiler_directed_prefetching
+% [2]: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#Optimize-Options
+
+% XXX.  This section may be misleading: it could seem like it suggests all of the measured
+% speedup is a result of prefetching.  It is a huge contributor, though.  The result from
+% accessing all data in a cache line should at most be that of dividing the initial main
+% memory access (about 200 cycles) between 8 separate reads.  Since reads from L1d still
+% take about 3 cycles:
+%    (200 + 7 * 3) / 8 = 221 / 8 = 27.625
+% Since the actual numbers aren't much above 6 cycles, prefetching still has a huge effect
+% (6.3 / 27.625 ~= 22.8 %).
+\x{Compared to the nearly 200 cycles the random accesses caused, ...}
+Until the working set size \alts{matches that of, exceeds} the \gls{l1d}, the access times
+are virtually unchanged at 3 cycles, but exceeding the \gls{l1d} and hitting the \gls{l2}
+\alts{increases this by, adds} no more than \alts{a single, one} cycle.
+More \alts{strikingly, remarkably}, \alts{exceeding} the \gls{l2}
+\alts{%
+   has \alts{similarly limited, comparably little} effect,
+   is \alts{com:comparably, similarly} inconsequential,
+}.
+The access time plateaus not much above 6 cycles \x{now} --- about \alts{\SI{3}{\percent},
+3\%, 3 \%} of the maximum we saw for random reads.
+ % This is in large part thanks to \emph{prefetching}.
+Much of this can be explained by the improved use of cache lines: the penalty of loading a
+cache line is distributed among 8 accesses now.  This \alts{%
+   could at \alts{best, most} get us down to,
+   can not get us down to less than,
+}
+\SI{12.5}{\percent}.
+% \alts{In large part, To a high degree, To a great extend}, the improvements are due to
+% \emph{prefetching}.
+The missing improvements are due to \emph{prefetching}.
+
+Prefetching is a \x{heuristic} technique by which CPUs \alts{predict \x{certain},
+recognize predictable} access patterns and \alts{%
+   preemptively push cache lines up the memory hierarchy before the program needs them,
+   speculatively load data before the program needs it,
+}.
+% > This can work well only when the memory access is predictable, though.
+%      -- Drepper, p. 23
+% > Currently prefetch units do not recognize non-linear access patterns.
+%      -- Drepper, p. 60
+\alts{%
+   {This can not work unless cache line access is predictable, though, which basically
+   means \x{sequential} linear},
+   {For this to work, cache line access has to be predictable, which usually means
+   sequential},
+   % This requires,
+   % This only works if,
+}%
+~\cite[60]{drepper2007}.%
+\footnote{%
+   As an example, the most complicated \emph{stride pattern} my laptop's CPU can detect is
+   % https://en.wikipedia.org/wiki/Hyphen#Suspended_hyphens
+   one that skips over at most 3 cache lines (for- or backwards) and may alternate strides
+   (e.g.  +1, +2, +1, +2, \ldots)~\cite[278]{14h}.
+}
+
+% > The purpose of prefetching is to hide the latency of a memory access.
+% ...
+% > Prefetching has one big weakness: it cannot cross page boundaries.
+% ...
+% > [R]egardless of how good the prefetcher is at predicting the pattern, the program will
+% > experience cache misses at page boundaries
+%      -- Drepper, p. 60
+
+% > Prediction or explicit prefetching might also guess where future reads will come from
+% > and make requests ahead of time; if done correctly the latency is bypassed altogether.
+%      -- https://en.wikipedia.org/wiki/Cache_(computing)#Latency
+
+% > [P]refetching [can] remove some of the costs of accessing main memory since it happens
+% > asynchronously with respect to the execution of the program. It can [...] make the
+% > cache appear bigger than it actually is.
+%      -- Drepper, p. 14
+Prefetching happens asynchronously to normal program execution~\cite[14]{drepper2007}
+% > [T]he processor is able to hide most of the main memory and even L2 access latency by
+% > prefetching cache lines into L2 and L1d.
+%      -- Drepper, p. 23
+and can therefore\x{, in principle,}\ almost completely hide the main memory latency%
+~\cite[23]{drepper2007}.
+This is not quite what we observe in \cref{fig:seq-access-times} because the CPU
+\alts{performs, has to perform} little enough work for memory bandwidth to become the
+bottleneck.
+% XXX: the peak transfer rate of my ThinkPad's memory (DDR3-1333, I think) is much higher
+% (should be 10666.67 MB/s) than the rate observed in this test (about 2 GB/s).
+%    8 B / (6.2 / 1.65 GHz) = 8 * 1.65 GB/s / 6.2 = 105.6 ~= 2.13 GB/s
+% What limits it?  How to achieve the theoretical maximum?  My understanding is that
+% sequential read access like this should pretty much be the most efficient use of RAM
+% possible.
+%
+% I compiled and ran the [STREAM][1] benchmark ([FAQ][2]) by [Dr. John D. McCalpin][3]
+% recommended [here][4].  It gives similarly low data rates.
+%
+% [1]: https://www.cs.virginia.edu/stream/
+% [2]: https://www.cs.virginia.edu/stream/ref.html
+% [3]: http://www.cs.virginia.edu/~mccalpin/
+% [4]: http://www.admin-magazine.com/HPC/Articles/Finding-Memory-Bottlenecks-with-Stream
+% [5]: https://software.intel.com/en-us/articles/optimizing-memory-bandwidth-on-stream-triad
+% [6]: https://www.nersc.gov/users/computational-systems/cori/nersc-8-procurement/trinity-nersc-8-rfp/nersc-8-trinity-benchmarks/stream/
+% [7]: https://en.wikipedia.org/wiki/Memory_bandwidth
+%
+% TODO: I also tried [bandwidth](http://zsmith.co/bandwidth.html).
+Adding some expensive operations like integer divisions every loop iteration changes that
+and \alts{effectively, almost completely} levels the cycles spend per iteration across all
+working set sizes.%
+% I tested this.  The difference between L1d and L2 virtually disappears (~0.01 cycles)
+% and exceeding the L2 increases the time per element by a single cycle.
+\footnote{%
+   % TODO.
+   See \vref{fig:seq-access-cpu-bound}.
+}
+
+% Ubiquitous.
+
+% > Hardware based prefetching is typically accomplished by having a dedicated hardware
+% > mechanism in the processor that watches the stream of instructions or data being
+% > requested by the executing program, recognizes the next few elements that the program
+% > might need based on this stream and prefetches into the processor's cache.
+%      -- https://en.wikipedia.org/wiki/Cache_prefetching#Types_of_cache_prefetching
+\alts{What I described so far is, So far I described} \emph{hardware} prefetching.  It
+uses dedicated silicon to automatically detect access patterns.  There is also
+\emph{software} prefetching, which is triggered by special machine instructions that may
+be inserted by the compiler or manually by the programmer.  Software prefetching is
+discussed in~\cite{drepper2007}.
+
+% > The idea of [the _mm_prefetch() intrinsic] function (actually an asm instruction from
+% > x86/x64 instruction set) is to inform CPU that you're about to need certain memory
+% > location.
+%      -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/2/
+
+% https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#index-fprefetch-loop-arrays
+
+% > Most of the time, prefetch just silently works behind the scenes, and I didn't see
+% > cases when messing with prefetch at application-level would be worth the trouble.  At
+% > least in theory, however, such cases do exist.
+%      -- http://ithare.com/c-for-games-performance-allocations-and-data-locality/2/
+
+% > The source for the prefetch operation is usually main memory.
+%      -- https://en.wikipedia.org/wiki/Cache_prefetching
 
 \begin{figure}
    \centering
@@ -17,6 +169,14 @@ the array is no longer shuffled.
    \caption{Access Times for Sequential Reads}
    \label{fig:seq-access-times}
 \end{figure}
+
+% \begin{figure}
+%    \centering
+%    \tikz \datavisualization[array size vs cycles plot]
+%       data [read from file=seq-access-times/step8/access-times.csv, separator=\space];
+%    \caption{TODO}
+%    \label{fig:seq8-access-times}
+% \end{figure}
 
 % [1]: http://ithare.com/c-for-games-performance-allocations-and-data-locality/
 % [2]: http://ithare.com/c-for-games-performance-allocations-and-data-locality/2/

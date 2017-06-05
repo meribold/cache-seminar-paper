@@ -1,6 +1,3 @@
-\section{Data}
-\label{app:data}
-
 % TODO: put this in a separate file and include it in the preamble?
 \pgfplotstableset{
    every head row/.style={before row=\toprule, after row=\midrule},
@@ -50,6 +47,29 @@
    },
 }
 
+\clearpage
+\section{Data}
+\label{app:data}
+
+% This section only contains figures and tables.  People recommend not using floats for
+% this use-case [1][2].  I'm using the approach from [1] to manually spread the tables and
+% figures on each page evenly.  This is a little ugly since it requires manually using
+% `\clearpage`.
+%
+% [1]: https://tex.stackexchange.com/a/169092
+% [2]: https://tex.stackexchange.com/a/205257
+
+% The `center` environment us just used as a hack to get some vertical padding...  TODO: I
+% should probably figure out a better way to get the same padding as floats and use
+% something like this:
+%    {
+%       \centering
+%       ...
+%    }
+
+\vfill
+
+% \begin{table}[hp]
 \begin{center}
    \pgfplotstabletypeset[
       % See <https://tex.stackexchange.com/q/131081/#comment311347_137554>.
@@ -63,25 +83,43 @@
       % },
       array size vs cycles,
    ]{access-times/access-times.csv}
+   % \caption{Access Times for Random Reads}
    \captionof{table}{Access Times for Random Reads}
    \label{tab:access-times}
+% \end{table}
 \end{center}
 
+\vfill
+
+% \begin{table}[hp]
 \begin{center}
    \pgfplotstabletypeset[
       assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
       array size vs cycles,
    ]{seq-access-times/access-times.csv}
+   % \caption{Access Times for Sequential Reads}
    \captionof{table}{Access Times for Sequential Reads}
    \label{tab:seq-access-times}
+% \end{table}
 \end{center}
 
-\begin{figure}
-   \centering
+\vfill
+\clearpage
+% Add space add the start of the page.  See <https://tex.stackexchange.com/a/21436>.
+\vspace*{\fill}%
+
+% \begin{figure}[hp]
+\begin{center}
    \tikz \datavisualization[array size vs cycles plot]
       data [read from file=seq-access-times/cpu-bound/access-times.csv, separator=\space];
-   \caption{CPU-bound Sequential Read Access}
+   % \caption{CPU-bound Sequential Read Access}
+   \captionof{figure}{CPU-bound Sequential Read Access}
    \label{fig:seq-access-cpu-bound}
-\end{figure}
+% \end{figure}
+\end{center}
+
+\vfill
+
+% \FloatBarrier
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

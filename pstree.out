@@ -1,0 +1,7 @@
+systemd-+-dbus-daemon
+        |-login---bash---pstree
+        |-systemd-+-(sd-pam)
+        |         `-gpg-agent
+        |-systemd-journal
+        |-systemd-logind
+        `-systemd-udevd

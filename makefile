@@ -21,10 +21,10 @@ all: paper.pdf
 
 texfiles := $(shell find -name '*.tex')
 
-paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib array-sum/size-time.csv \
+paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib \
    line-size/line-size.csv access-times/access-times.csv \
    seq-access-times/access-times.csv seq-access-times/cpu-bound/access-times.csv
-   # seq-access-times/step8/access-times.csv
+   # seq-access-times/step8/access-times.csv array-sum/size-time.csv
 	latexmk -quiet -pdf -shell-escape '$(@:.pdf=.tex)'
 
 # 1 KiB to 128 MiB.

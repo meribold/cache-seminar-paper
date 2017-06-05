@@ -1,11 +1,11 @@
 1124042344
 
-Events were actively counted for 185080270 nanoseconds.
+Events were actively counted for 183981483 nanoseconds.
 Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
 	Event                    Count                    % time counted
-	CPU_CLK_UNHALTED         303,759,501              100.00
+	CPU_CLK_UNHALTED         302,044,340              100.00
 
-Events were actively counted for 1693857 nanoseconds.
+Events were actively counted for 1283933 nanoseconds.
 Event counts (actual) for /home/casi/cache-seminar-paper/a.out:
 	Event                    Count                    % time counted
-	CPU_CLK_UNHALTED         1,151,248                100.00
+	CPU_CLK_UNHALTED         1,104,146                100.00

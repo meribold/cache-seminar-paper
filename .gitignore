@@ -17,7 +17,5 @@
 *.xdy
 *.xml
 _minted-paper
-array-sum/*.csv
-line-size/*.csv
 .stfolder
 .stignore

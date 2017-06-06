@@ -111,7 +111,7 @@ to provide low-overhead performance information without source code modification
 
 \begin{minted}[autogobble]{text}
    $ gcc -march=native -O2 program.c
-   # cpupower frequency-set -g schedutil
+   # cpupower frequency-set -g performance
    # chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out
 \end{minted}
 %stopzone

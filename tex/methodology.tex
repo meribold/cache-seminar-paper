@@ -20,7 +20,7 @@ measurements for this \article.
       \begin{minted}[autogobble]{text}
          # cpupower frequency-set -g performance
          $ ./benchmark
-         # cpupower frequency-set -g ondemand
+         # cpupower frequency-set -g schedutil
       \end{minted}
       %stopzone
       % See [5].  Not a problem when measuring cycles.
@@ -111,7 +111,7 @@ to provide low-overhead performance information without source code modification
 
 \begin{minted}[autogobble]{text}
    $ gcc -march=native -O2 program.c
-   # cpupower frequency-set -g ondemand
+   # cpupower frequency-set -g schedutil
    # chrt -f 99 ocount -e CPU_CLK_UNHALTED ./a.out
 \end{minted}
 %stopzone

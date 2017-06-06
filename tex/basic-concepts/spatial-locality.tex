@@ -1,15 +1,177 @@
-\subsection{Spatial Locality}
-Data is loaded from bigger, slower memory into smaller, faster memory (e.g. from main
-memory into the CPU cache) in \emph{blocks}.
+\subsection{Locality of Reference}
+%           Principle of Locality
 
-Moving down the memory hierarchy, access latencies increase faster than the
-\emph{obtainable} bandwidth: \say{[w]e can still achieve large bandwidths by accessing
-many close-by bits together [...].  Access to large \emph{blocks} [emphasis added] of
-memory is almost as fast as access to a single bit},~\cite[2]{afmh}.
+% > [C]aches have proven themselves in many areas of computing because access patterns in
+% > typical computer applications exhibit the locality of reference.
+%      -- https://en.wikipedia.org/wiki/Cache_(computing)
 
-% TODO: move this.
+% > Locality is [...] one type of predictable behavior that occurs in computer systems.
+% > Systems that exhibit strong locality of reference are great candidates for performance
+% > optimization through the use of techniques such as the caching, prefetching for memory
+% > and advanced branch predictors at the pipelining stage of processor core.
+%      -- https://en.wikipedia.org/wiki/Locality_of_reference
+
+% > Realizing that locality exists is key to the concept of CPU caches as we use them
+% > today. -- Drepper, p. 14
+
+% > The memory hierarchy wouldn't be very effective if two facts about programs weren't
+% > true.  Programs exhibit spatial locality and temporal locality.
+%      -- http://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Memory/introCache.html
+
+% > Programs which have good spatial locality benefit from the fact that data are
+% > transferred from main memory to cache in blocks, while programs which have good
+% > temporal locality benefit from the fact that caches hold several blocks of data.
+%      -- Algorithms for Memory Hierarchies, page 171
+
+\alts{%
+  {Two properties exhibited by \x{the memory access patterns of} computer code to varying
+  degrees \alts{
+    distinctly impact,
+    are particularly \alts{essential, crucial} for,
+    merit emphasis because of their impact on,
+  } cache effectiveness:
+  these are \emph{spatial locality} and \emph{temporal locality}.},
+  {Spatial locality is a property \x{exhibited by} \alts{computer code exhibits, programs
+  exhibit} to varying degrees.},
+}
+\alts{%
+  {Both are measures of how well the code's memory access pattern matches certain
+  principles.},
+  {Both are measures of how well certain \alts{principles, ideals} about memory access are
+  matched.\x{  For spatial locality, these are:}},
+}
+
+% This one goes first because it's really more fundamental than spatial locality.
+\subsubsection{Temporal Locality}
+
+% Temporal locality refers to the reuse of specific data, and/or resources, within a
+% relatively small time duration.
+%      -- https://en.wikipedia.org/wiki/Locality_of_reference
+
+% > A sequence of references exhibits temporal locality of recently accessed data are
+% > likely to be accessed again in the near future.
+%      -- Algorithms for Memory Hierarchies, page 215
+
+% > Even if the memory used over short time periods is not close together there is a high
+% > chance that the same data will be reused before long (temporal locality).
+%      -- Drepper, p. 14
+
+% One access to a memory location \alts{suggests, deserves} another within a short time
+% frame.
+One access suggests another.  That is, \alts{once, previously} \alts{referenced, accessed}
+memory locations tend to be used again within a short time frame.
+%
+This is \alts{really, effectively, in fact} the \alts{intrinsic, fundamental}
+\alts[2]{raison d'être of memory hierarchies, motivation for having a memory hierarchy in
+the first place}.  When \alts{a cache line, some data} is loaded \x{into cache} but not
+accessed again before being evicted, the cache \alts{provided no benefit, was useless}.
+% If every memory location were only used once
+
+\subsubsection{Spatial Locality}
+
+% > [S]patial locality refers to requests for data physically stored close to data that
+% > has been already requested.
+%      -- https://en.wikipedia.org/wiki/Cache_(computing)
+
+% > Spatial locality refers to the use of data elements within relatively close storage
+% > locations.  Sequential locality, a special case of spatial locality, occurs when data
+% > elements are arranged and accessed linearly, such as, traversing the elements in a
+% > one-dimensional array.
+%      -- https://en.wikipedia.org/wiki/Locality_of_reference
+
+% On spatial locality:
+%
+% > When a data item is accessed, it is likely that data items in sequential memory
+% > locations will also be accessed.
+%      -- https://en.wikibooks.org/wiki/Microprocessor_Design/Cache
+
+% > Data accesses are also ideally limited to small regions.
+%      -- Drepper, p. 14
+
+% > Spatial locality: When a block is accessed, it should contain as much useful data as
+% > possible.
+%      -- Algorithms for Memory Hierarchies, page 9
+
+% > A sequence of references exposes spatial locality if data located close together in
+% > address space tend to be referenced close together in time.
+%      -- Algorithms for Memory Hierarchies, page 215
+
+% \alts{Spatial locality, It} is a measure of how
+% \alts{%
+%   % predictable the memory access \alts{is, patterns are}.
+%   well two \alts{principles, assumptions} about memory access are matched:
+% }
+\begin{enumerate*}[font=\bfseries]
+  \item For each accessed memory location, nearby locations are used as well within a
+    short time frame.
+  % \item Memory locations that are accessed are close to recently accessed ones.
+  \item Memory is accessed sequentially.
+\end{enumerate*}
+% [S]patial locality is one of the principles on which caches are based.
+%      -- Drepper, p. 15
+We have already seen in the last two sections that caches \alts{%
+  take advantage of \alts{these principles, spatial locality} by design,
+  are designed to take advantage of \alts{these principles, spatial locality},
+% }~\cite[15]{drepper2007}:
+}:
+\begin{enumerate}[font=\bfseries]
+  \item Data is loaded in blocks; subsequent accesses to locations in an already loaded
+    cache line are basically free.
+  \item \alts{Cache lines, Locations} from sequential access patterns are prefetched
+    \alts{ahead of time, speculatively}.
+\end{enumerate}
+
+\subsubsection{Notes}
+% \subsubsection{Instruction Cache}
+
+% Talk about how instructions naturally have good spatial locality and are therefore less
+% problematic and less of a target for optimizations from an application programmer's
+% point of view.
+
+% > Code always has quite good spatial and temporal locality.
+%      -- Drepper, p. 31
+
+% > [I]nstructions usually run sequentially (with the occasionaly branch or jump).  Since
+% > instructions are contiguous in memory, they exhibit spatial locality.  When you run
+% > one instruction, you're likely to run the next one too.  That's the nature of running
+% > programs.
+%      -- http://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Memory/introCache.html
+
+% On temporal locality:
+%
+% > For code this means, for instance, that in a loop a function call is made and that
+% > function is located elsewhere in the address space.  The function may be distant in
+% > memory, but calls to that function will be close in time.
+%      -- Drepper, p. 14
+
+% As said before, instruction cache \alts{tends to benefit less from, is less dependent
+% on} optimization.
+
+\alts{%
+  Access to instructions,
+  {\alts{Access to \x{the}, The} machine code itself, which is also cached, },
+}
+inherently has good spatial locality~\cite[31]{drepper2007} since \alts{they are,
+instruction are, it is}
+\alts{%
+  \x{naturally} executed sequentially outside of jumps,
+  mostly executed sequentially (with some jumps),
+},
+and good temporal locality\x{~\cite[31]{drepper2007}}\ because of loops and function
+calls~\cite[14]{drepper2007}.
+
+% [1]: https://en.wikipedia.org/w/index.php?title=Cache_memory&oldid=778902517#Functional_principles_of_the_cache_memory
+
+% Data is loaded from bigger, slower memory into smaller, faster memory (e.g. from main
+% memory into the CPU cache) in \emph{blocks}.
+
+% Moving down the memory hierarchy, access latencies increase faster than the
+% \emph{obtainable} bandwidth: \say{[w]e can still achieve large bandwidths by accessing
+% many close-by bits together [...].  Access to large \emph{blocks} [emphasis added] of
+% memory is almost as fast as access to a single bit}.~\cite[2]{afmh}.
+
 % Consider the program shown in \cref{lst:array-sum}.  It repeatedly loops over an array
-% to compute the sum of its elements.  Before exiting, it prints the CPU time spend
+% to compute the sum of its elements.  Before exiting, it prints the CPU time spent
 % summing the array.
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

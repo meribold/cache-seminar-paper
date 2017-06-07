@@ -10,9 +10,11 @@ MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 # [1]: https://www.gnu.org/prep/standards/standards.html#Makefile-Basics
 
-CC     := gcc
-CFLAGS += -Wall -march=native -O2
-OCOUNT := sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED
+CC       := gcc
+CFLAGS   += -Wall -march=native -O2
+CXX      := g++
+CXXFLAGS := -std=c++14 -march=native -O3
+OCOUNT   := sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED
 
 .PHONY: all clean
 
@@ -23,7 +25,8 @@ texfiles := $(shell find -name '*.tex')
 
 paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib \
    line-size/line-size.csv access-times/access-times.csv \
-   seq-access-times/access-times.csv seq-access-times/cpu-bound/access-times.csv
+   seq-access-times/access-times.csv seq-access-times/cpu-bound/access-times.csv \
+   ithare/speedup.txt
    # seq-access-times/step8/access-times.csv array-sum/size-time.csv
 	latexmk -quiet -pdf -shell-escape '$(@:.pdf=.tex)'
 
@@ -84,6 +87,17 @@ line-size/line-size.csv: line-size/line-size.c
 	for ((i=0; i<=10; i=i+1)); do \
 	   $(CC) $(CFLAGS) -DSTEP=$$((2**i)) '$<' && ./a.out >> '$@'; \
 	done
+
+ithare/list.out: ithare/list-vs-vector.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) '$<' -o ithare/list
+	./ithare/list > '$@'
+
+ithare/vector.out: ithare/list-vs-vector.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DVECTOR '$<' -o ithare/vector
+	./ithare/vector > '$@'
+
+ithare/speedup.txt: ithare/list.out ithare/vector.out
+	paste $^ | tail -1 | awk '{ print $$1/$$2 }' > '$@'
 
 array-sum/size-time.csv: array-sum/array-sum.c
 	echo 'x y' > '$@'

@@ -1,0 +1,34 @@
+\section{Example: \texttt{std::vector} vs. \texttt{std::list}}
+
+\alts{%
+   The C++ program shown in \cref{lst:ithare},
+   The following C++ program,
+}
+\x{, adapted from \textcite{bigos},} initializes a number of \acrshort{stl} containers
+with random numbers and measures the processor time needed to \alts{sum all of them,
+compute the sum}.
+%
+I first ran it with \mintinline{cpp}{Container} being a type alias for
+\mintinline{cpp}{std::list}, then for \mintinline{cpp}{std::vector}.%
+\footnote{%
+   Each compiled with \x{the \gls{gcc}} and \mintinline{text}{-O3} and
+   \mintinline{text}{-march=native}
+}
+
+\begin{center}
+   \inputminted[firstline=20]{cpp}{ithare/list-vs-vector.cpp}
+   \captionof{listing}{Compute the Sum of a Container, adapted from \textcite{bigos}}
+   \label{lst:ithare}
+\end{center}
+
+\newread\file
+\openin\file=ithare/speedup.txt
+\read\file to \speedup
+\closein\file
+
+% This doesn't work: `\num{\input{ithare/speedup.txt}}`.
+
+When using \mintinline{cpp}{std::vector}, computing the sum is
+\num[round-mode=places, round-precision=0]{\speedup} times faster.
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

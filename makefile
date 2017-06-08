@@ -11,9 +11,9 @@ MAKEFLAGS += --no-builtin-rules
 # [1]: https://www.gnu.org/prep/standards/standards.html#Makefile-Basics
 
 CC       := gcc
-CFLAGS   += -Wall -march=native -O2
+CFLAGS   += -Wall -Wextra -march=native -O2
 CXX      := g++
-CXXFLAGS := -std=c++14 -march=native -O3
+CXXFLAGS := -std=c++14 -Wall -Wextra -march=native -O3
 OCOUNT   := sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED
 
 .PHONY: all clean
@@ -82,6 +82,7 @@ $(seq8-access-time-results): seq-access-times/access-times.c
 	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DSTEP=8 -DBASELINE '$<' && \
 	$(OCOUNT) ./a.out | tee -a '$@'
 
+# TODO: `chrt`.
 line-size/line-size.csv: line-size/line-size.c
 	echo 'x y' > '$@'
 	for ((i=0; i<=10; i=i+1)); do \
@@ -90,11 +91,11 @@ line-size/line-size.csv: line-size/line-size.c
 
 ithare/list.out: ithare/list-vs-vector.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) '$<' -o ithare/list
-	./ithare/list > '$@'
+	sudo chrt -f 99 ./ithare/list > '$@'
 
 ithare/vector.out: ithare/list-vs-vector.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DVECTOR '$<' -o ithare/vector
-	./ithare/vector > '$@'
+	sudo chrt -f 99 ./ithare/vector > '$@'
 
 ithare/speedup.txt: ithare/list.out ithare/vector.out
 	paste $^ | tail -1 | awk '{ print $$1/$$2 }' > '$@'

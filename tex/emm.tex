@@ -1,0 +1,188 @@
+\section{Abstract?}
+% \section{Analysis of Algorithms}
+
+% > However the efficiencies of any two "reasonable" implementations of a given algorithm
+% > are related by a constant multiplicative factor called a *hidden constant*.
+%      -- https://en.wikipedia.org/wiki/Analysis_of_algorithms
+
+% Mathematical analysis of algorithms to obtain asymptotic upper bounds is nice.  Ignoring
+% the non-uniform nature of memory hierarchies can yield pretty bad results, though.  What
+% can be done about this?
+
+We have seen that
+\alts{
+  {the hidden constant \alts{separating, distinguishing} the time complexities of two
+  reasonable algorithms under asymptotic analysis can get quite big in the presence of a
+  memory hierarchy.},
+  {analyzing \alts{an algorithm's,} \alts{time, asymptotic, algorithmic} complexity,
+  % This is not true: it doesn't matter for asymptotic complexity if there are different
+  % types of memory.
+  \x{under the usual \gls{ram} model, where a single uniform memory is \alts{presumed,
+  assumed, supposed, premised},}
+  can be quite inaccurate in the presence of a memory hierarchy.},
+}
+\alts{
+  To \alts{escape, avert, prevent} having to rely \alts{only, entirely, exclusively} on
+  empirical results, To overcome this problem,
+},
+abstract machine models taking the non-uniform \alts{memories of, nature of memory in}
+real-world computers into account \alts{can be used, are used, have been proposed}.
+% By whom?
+One of these is the \gls{emm}\alts{
+  ,
+  ~\cite[5]{afmh},
+  {, used \alts{in~\cite{afmh}, by \textcite{afmh}}.},
+}.
+
+\subsection{External Memory Model}
+
+% https://en.wikipedia.org/wiki/Random-access_machine
+
+% TODO: go into more detail about the RAM model?
+\alts[2]{
+  {\alts{Establishing the basis of the, The} \gls{emm}, the widely used \gls{ram} model
+  assumes \say{a \say{sufficiently} large uniform memory}~\cite[5]{afmh} with a constant
+  access time.
+  The},
+  {The \gls{emm} is an extension of the \gls{ram} model.  While the latter assumes \say{a
+  \say{sufficiently} large uniform memory}~\cite[5]{afmh} with a constant access time,
+  the},
+}
+\gls{emm} \alts{divides, \alts{expands upon, extends} this by dividing} the memory into
+\emph{internal} and \emph{external}.
+\alts{The, Only the} internal memory is accessed directly, but its size is limited to
+\(M\) \alts{items, words}.
+The external memory is unbounded, but \alts{
+  can only be accessed indirectly by loading data,
+  data \x{is not accessed directly and} has to be loaded,
+}
+into internal memory \say{using \glslink{io}{I/Os} that move \(B\) contiguous
+\alts{[items], words}}~\cite[5]{afmh}.
+
+% > Although the word "I/O" suggests that external memory should be identified with disk
+% > memory, we are free to choose any two levels of the memory hierarchy for internal and
+% > external memory in the model.
+%        -- Algorithms for Memory Hierarchies, page 6
+The use of the term \emph{\acrshort{io}} here is somewhat non-standard.  While it suggests
+\x{\alts{that, the}} external memory represents an \gls{hdd}, \gls{ssd} or similar, it is
+not constrained which \alts{physical storages, members of an actual memory hierarchy} are
+\alts[2]{represented by, associated \alts{with, to}} \x{the} internal and external memory.
+% Which members of an actual memory hierarchy are \alts{represented by, associated to} the
+% internal and external memory is \alts{not constrained, as desired}.
+If we choose the set of all CPU caches and the main memory, \(B\) becomes the cache line
+size and \(M\) may be in the order of a few \si{\mebi\byte}.
+
+% > The relative miss penalty is much lower for caches or the TLB than for disks, so
+% > constant factors are important, we find that asymptotic analysis is not enough to
+% > determine the performance of algorithms.
+%      -- Algorithms for Memory Hierarchies, page 181
+
+% > In the EMM it is generally assumed that the cost of I/Os is much greater than the cost
+% > of computation, hence the design of the algorithm is usually motivated by the need to
+% > minimise the number of I/Os.
+%      -- Algorithms for Memory Hierarchies, page 188
+
+% \subsubsection{Caveats}
+
+The number of \acrshortpl{io} an algorithm requires in the \gls{emm} can augment the
+information provided by standard asymptotic complexity analysis%
+\x{, if \acrshort{io} is pivotal to an algorithm's runtime},
+but \alts[2]{can't substitute, is no substitute for} measurements.
+For example, the lower bound of \acrshortpl{io} needed for computing the sum of some
+input\x{, like in \cref{lst:ithare},}\ is \(\nicefrac{N}{B}\) in the \gls{emm}.  The
+linked list in \cref{lst:ithare} probably takes almost \(N\) \acrshortpl{io}, since
+consecutive \alts{nodes, elements} are unlikely to fall into the same cache line.  Thus,
+the maximum predicted performance difference between \mintinline{cpp}{std::vector} and
+\mintinline{cpp}{std::list} is \(B\), the number of items a cache line can hold, which is
+\si{16} in this case.%
+\footnote{%
+  % TODO: elaborate on the size of `int`?
+  A cache line has \alts{\si{64}, \SI{64}{\byte}} and an \mintinline{text}{int} \si{4}
+  bytes on the machine used.
+}
+Recalling that the actual performance difference was \num[round-mode=places,
+round-precision=0]{\speedup}, this is pretty inaccurate, but more informative than saying
+both algorithms' time complexities are \x{in} \(\Theta(N)\).
+
+% This analysis only makes sense when \acrshort{io} is pivotal to an algorithm's
+% efficiency.
+
+% The objective is to \alts{
+%   {design algorithms requiring a \alts{minimum number, minimum, minimal number} of
+%   \acrshortpl{io}.},
+%   {minimize the number of \alts{\acrshortpl{io}, I/Os} \alts{an algorithm needs,
+%   needed}.},
+% }
+
+\x{
+% Applying this model to \cref{lst:ithare} suggests
+The \gls{emm} suggest that we can at best sum containers like in \cref{lst:ithare} using
+\(\nicefrac{N}{B}\) \acrshortpl{io}, where \(N\) is the number of items to sum and \(B\)
+the amount of them that fit in one block.
+% Since there's 5000 containers of size 5000 and my cache line
+% size is \SI{64}{B} and fits 8 \mintinline{cpp}{int} values:
+% \begin{equation*}
+%   N/B = 5000^2/8 = 3125000
+% \end{equation*}
+We can assume that the version with the list uses almost \(N\) \acrshortpl{io} because of
+the random memory access.  Since a cache line fits 16 \mintinline{text}{int} values (\(B =
+16\)) it
+predicts a performance difference of 16.  This is not very accurate.
+Analysis of \acrshortpl{io} needed by an algorithms \x{or data structure} may help inform
+the decision of whether to consider it for empirical comparisons, though.
+% that can be used prior to empirical comparisons.
+
+% Apparently, the model is not practical for comparing these two data structures.
+}
+
+% Now for something completely different.
+\x{
+The \gls{emm} also suggests another approach to improve \cref{lst:ithare}, if we don't
+want to \alts{trade, forgo, give up} the \x{asymptotically} constant time complexity of
+insertions and deletions anywhere in the container: an \emph{unrolled list}.
+}
+
+% Notes and potential problems:
+% * The concept of I/Os that move B contiguous words directly translates to cache lines.
+% * There's nothing equivalent to prefetching in the EMM.
+% * > The main problem with hardware caches is that they use a fixed simplistic strategy
+%   > for deciding which blocks are kept whereas the external memory model gives the
+%   > programmer full control over the content of internal memory.
+%        -- Algorithms for Memory Hierarchies, page 6
+% * We lost associativity too.
+% * And we don't model multiple levels of CPU caches, of course.
+
+% > In the EMM it is generally assumed that the cost of I/Os is much greater than the cost
+% > of computation, hence the design of the algorithm is usually motivated by the need to
+% > minimise the number if I/Os.  Howeever in the CMM and the IMM the relative miss
+% > penalties are far smaller and we have to consider computation costs.
+%      -- Algorithms for Memory Hierarchies, Section 8.6.4, page 188
+
+% > In general it is best to hardcode cache line sizes at compile time by using the
+% > `getconf` utility as in:
+% >    gcc -DCLS=$(getconf LEVEL1_DCACHE_LINESIZE) ...
+% > If the binaries are supposed to be generic, the largest cache line size should be
+% > used.
+%      -- Drepper, p. 50
+
+% \subsubsection{Notes}
+\subsubsection{Limitations and Other Models}
+
+% Replacement policies.  Associativity.  More than two levels of memory.
+
+% While \alts{
+While the concept of \acrshortpl{io} directly models \alts{
+  most\footnote{%
+    TODO: not associativity though.
+  },
+  the
+}
+\alts{effects, existence} of cache lines,
+% are directly modeled by the concept of \acrshortpl{io},
+nothing in the \gls{emm} accounts for \x{those of} prefetching.
+
+\input{tex/com.tex}
+
+% [1]: https://en.wikipedia.org/wiki/Analysis_of_algorithms
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

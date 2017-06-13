@@ -49,8 +49,8 @@ Either way, the asymptotic complexity is \(\Theta(N)\).
 % sum \alts{runs, is} \num[round-mode=places, round-precision=0]{\speedup} times faster.
 \alts{My, The} result is that computing the sum \alts{runs, is} \num[round-mode=places,
 round-precision=0]{\speedup} times faster when using \mintinline{cpp}{std::vector}.  Some
-of this difference can certainly be attributed to space overhead of the linked list and
-the added indirection, but the more \emph{cache-friendly} memory access pattern of
+of this difference can \x{certainly} be attributed to space overhead of the linked list
+and the added indirection, but the more cache-friendly memory access pattern of
 \mintinline{cpp}{std::vector} is \alts{decisive, key, crucial, vital}~\cite[5\psq]{bigos}.
 Using \mintinline{cpp}{std::list} incurs \say{random access to memory} in this
 example~\cite[6]{bigos}.

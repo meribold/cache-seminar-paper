@@ -11,6 +11,18 @@
 \usepackage{mathtools}      % Improved facilities for typesetting mathematical formulae
 \usepackage{dirtytalk}      % ...
 
+% `$\nicefrac{a}{b}$` looks better than `$a/b$` in my opinion.  I also think it looks
+% better than `$\sfrac{a}{b}` from the more recent [xfrac][5] package.  See [3], [4], and
+% [5].
+%
+% [1]: https://www.ctan.org/pkg/nicefrac
+% [2]: https://www.ctan.org/pkg/xfrac
+% [3]: https://tex.stackexchange.com/q/3372
+%      "How do I typeset arbitrary fractions like the standard symbol for .5 = ½?"
+% [4]: https://tex.stackexchange.com/q/128496 "Elegant fractions in one line"
+% [5]: https://tex.stackexchange.com/q/43119 "Improved kerning in fractions?"
+\usepackage{nicefrac}
+
 % Prevent floats from moving into another section (https://ctan.org/pkg/placeins).
 \usepackage[above, below, section]{placeins}
 
@@ -49,7 +61,8 @@
 % [2]: https://tex.stackexchange.com/q/131081
 % [3]: https://tex.stackexchange.com/q/276485
 % [4]: https://tex.stackexchange.com/q/9203
-\usepackage{pgfplotstable, siunitx}
+\usepackage{pgfplotstable}
+\usepackage[binary-units]{siunitx} % Load `\kibi` and `\mebi` etc. (`binary-units`).
 % These packages are recommended by [pgfplotstable].  The booktabs package adds the
 % `\toprule`, `\midrule`, and `\bottomrule` commands for better looking tables.  See [5].
 \usepackage{booktabs, array, colortbl}
@@ -169,9 +182,15 @@
 
 \begin{abstract}
    % What?
-   Typical present-day CPUs have two or more levels of caches.  This \article{} presents
-   the basic techniques used to optimize program performance based on knowledge about how
-   these hardware caches function.
+   Typical present-day CPUs have two or more levels of caches.
+   \alts[3]{
+      {This \article{} presents the basic techniques used to optimize program performance
+      based on knowledge about how these hardware caches function.},
+      {This \article{} explains their key architectural properties with the intend of
+      \alts{providing, giving} basic insight on possible program optimizations.},
+      {This \article{} provides basic insight into their operation and presents key
+      architectural properties which suggest possible program optimizations.},
+   }
 
    The abstract \gls{emm} for memory hierarchies is explained and a small selection of
    algorithms \alts{developed for it, analyzed under it} are explored mathematically and
@@ -191,24 +210,14 @@
 \input{tex/types}
 \input{tex/key-concepts}
 \input{tex/list-vs-vector.tex}
-\label{sec:vvl}
-
+\label{sec:lvv}
 % \section{Cache Replacement Policies} % Eviction Policies/Strategies/Algorithms
 % https://en.wikipedia.org/wiki/Cache_replacement_policies
-
-\section{External Memory Model}
-The \gls{emm} is a widely used
-% TODO: is it?
-extension of the \gls{ram} model.
-
-\section{Cache-Oblivious Algorithms} % Cache-Oblivious Model
-
+\input{tex/emm.tex}
 \section{Parallel Computing}
-
 \subsection{Cache Coherence} % Coherence or coherency?
 % https://en.wikipedia.org/wiki/Cache_coherence
 % Dirty.  Invalid.
-
 \subsection{False Sharing}
 
 \clearpage

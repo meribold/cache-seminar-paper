@@ -1,0 +1,41 @@
+\section{Abstract?}
+% \section{Analysis of Algorithms}
+
+% > However the efficiencies of any two "reasonable" implementations of a given algorithm
+% > are related by a constant multiplicative factor called a *hidden constant*.
+%      -- https://en.wikipedia.org/wiki/Analysis_of_algorithms
+
+% Mathematical analysis of algorithms to obtain asymptotic upper bounds is nice.  Ignoring
+% the non-uniform nature of memory hierarchies can yield pretty bad results, though.  What
+% can be done about this?
+
+We have seen that
+\alts{
+  {the hidden constant \alts{separating, distinguishing} the time complexities of two
+  reasonable algorithms under asymptotic analysis can get quite big in the presence of a
+  memory hierarchy.},
+  {analyzing \alts{an algorithm's,} \alts{time, asymptotic, algorithmic} complexity,
+  % This is not true: it doesn't matter for asymptotic complexity if there are different
+  % types of memory.
+  \x{under the usual \gls{ram} model, where a single uniform memory is \alts{presumed,
+  assumed, supposed, premised},}
+  can be quite inaccurate in the presence of a memory hierarchy.},
+}
+\alts{
+  To \alts{escape, avert, prevent} having to rely \alts{only, entirely, exclusively} on
+  empirical results, To overcome this problem,
+},
+abstract machine models taking the non-uniform \alts{memories of, nature of memory in}
+real-world computers into account \alts{can be used, are used, have been proposed}.
+% By whom?
+One of these is the \gls{emm}\x{\alts{
+  ~\cite[5]{afmh},
+  {, used \alts{in~\cite{afmh}, by \textcite{afmh}}.},
+}}.
+
+\input{tex/emm}
+\input{tex/com}
+
+% [1]: https://en.wikipedia.org/wiki/Analysis_of_algorithms
+
+% vim: tw=90 sts=-1 sw=3 et fdm=marker

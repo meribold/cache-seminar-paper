@@ -1,39 +1,3 @@
-\section{Abstract?}
-% \section{Analysis of Algorithms}
-
-% > However the efficiencies of any two "reasonable" implementations of a given algorithm
-% > are related by a constant multiplicative factor called a *hidden constant*.
-%      -- https://en.wikipedia.org/wiki/Analysis_of_algorithms
-
-% Mathematical analysis of algorithms to obtain asymptotic upper bounds is nice.  Ignoring
-% the non-uniform nature of memory hierarchies can yield pretty bad results, though.  What
-% can be done about this?
-
-We have seen that
-\alts{
-  {the hidden constant \alts{separating, distinguishing} the time complexities of two
-  reasonable algorithms under asymptotic analysis can get quite big in the presence of a
-  memory hierarchy.},
-  {analyzing \alts{an algorithm's,} \alts{time, asymptotic, algorithmic} complexity,
-  % This is not true: it doesn't matter for asymptotic complexity if there are different
-  % types of memory.
-  \x{under the usual \gls{ram} model, where a single uniform memory is \alts{presumed,
-  assumed, supposed, premised},}
-  can be quite inaccurate in the presence of a memory hierarchy.},
-}
-\alts{
-  To \alts{escape, avert, prevent} having to rely \alts{only, entirely, exclusively} on
-  empirical results, To overcome this problem,
-},
-abstract machine models taking the non-uniform \alts{memories of, nature of memory in}
-real-world computers into account \alts{can be used, are used, have been proposed}.
-% By whom?
-One of these is the \gls{emm}\alts{
-  ,
-  ~\cite[5]{afmh},
-  {, used \alts{in~\cite{afmh}, by \textcite{afmh}}.},
-}.
-
 \subsection{External Memory Model}
 
 % https://en.wikipedia.org/wiki/Random-access_machine
@@ -64,7 +28,10 @@ into internal memory \say{using \glslink{io}{I/Os} that move \(B\) contiguous
 % > external memory in the model.
 %        -- Algorithms for Memory Hierarchies, page 6
 The use of the term \emph{\acrshort{io}} here is somewhat non-standard.  While it suggests
-\x{\alts{that, the}} external memory represents an \gls{hdd}, \gls{ssd} or similar, it is
+\x{\alts{that, the}} external memory represents an \alts{
+  {\gls{hdd} or \gls{ssd}},
+  {\gls{hdd}, \gls{ssd} or similar},
+}, it is
 not constrained which \alts{physical storages, members of an actual memory hierarchy} are
 \alts[2]{represented by, associated \alts{with, to}} \x{the} internal and external memory.
 % Which members of an actual memory hierarchy are \alts{represented by, associated to} the
@@ -89,12 +56,12 @@ information provided by standard asymptotic complexity analysis%
 \x{, if \acrshort{io} is pivotal to an algorithm's runtime},
 but \alts[2]{can't substitute, is no substitute for} measurements.
 For example, the lower bound of \acrshortpl{io} needed for computing the sum of some
-input\x{, like in \cref{lst:ithare},}\ is \(\nicefrac{N}{B}\) in the \gls{emm}.  The
-linked list in \cref{lst:ithare} probably takes almost \(N\) \acrshortpl{io}, since
+input, like in \cref{lst:ithare}, is \(\nicefrac{N}{B}\) in the \gls{emm}.  The
+linked list in that example probably takes almost \(N\) \acrshortpl{io}, since
 consecutive \alts{nodes, elements} are unlikely to fall into the same cache line.  Thus,
-the maximum predicted performance difference between \mintinline{cpp}{std::vector} and
-\mintinline{cpp}{std::list} is \(B\), the number of items a cache line can hold, which is
-\si{16} in this case.%
+the predicted performance difference between \mintinline{cpp}{std::vector} and
+\mintinline{cpp}{std::list} is at most \(B\), the number of items a cache line can hold,
+which is \si{16} in this case.%
 \footnote{%
   % TODO: elaborate on the size of `int`?
   A cache line has \alts{\si{64}, \SI{64}{\byte}} and an \mintinline{text}{int} \si{4}
@@ -180,9 +147,5 @@ While the concept of \acrshortpl{io} directly models \alts{
 \alts{effects, existence} of cache lines,
 % are directly modeled by the concept of \acrshortpl{io},
 nothing in the \gls{emm} accounts for \x{those of} prefetching.
-
-\input{tex/com.tex}
-
-% [1]: https://en.wikipedia.org/wiki/Analysis_of_algorithms
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

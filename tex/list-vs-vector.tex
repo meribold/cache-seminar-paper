@@ -1,4 +1,5 @@
 \section{Example: \texttt{std::vector} vs. \texttt{std::list}}
+\label{sec:lvv}
 
 \alts{%
    The C++ program shown in \cref{lst:ithare},
@@ -54,5 +55,36 @@ and the added indirection, but the more cache-friendly memory access pattern of
 \mintinline{cpp}{std::vector} is \alts{decisive, key, crucial, vital}~\cite[5\psq]{bigos}.
 Using \mintinline{cpp}{std::list} incurs \say{random access to memory} in this
 example~\cite[6]{bigos}.
+
+\subsection{``True OO Style''}
+
+% TODO.  Having a vector of pointers to dynamically allocated object derived from some
+% base class in true OO style (tm) probably isn't going to make the cache happy.  Bjarne
+% Stroustrup talked about this [1].  Strongly related: data-oriented design [3].
+%
+% [1]: https://youtu.be/0iWb_qi2-uI?t=51m22s
+%      "GoingNative 2012: Day 1 Keynote - Bjarne Stroustrup: C++11 Style"
+% [2]: https://channel9.msdn.com/Events/GoingNative/GoingNative-2012/Keynote-Bjarne-Stroustrup-Cpp11-Style
+%      "GoingNative 2012: Day 1 Keynote - Bjarne Stroustrup: C++11 Style"
+% [3]: https://youtu.be/rX0ItVEVjHc
+%      "CppCon 2014: Mike Acton 'Data-Oriented Design and C++'"
+
+% A nice compact, flat container isn't going to cut it if it contains pointers.
+
+In object-oriented systems, objects are typically referred to by pointers to a common base
+class.  A polymorphic container of such pointers allows for dynamic dispatch of virtual
+functions.  This carries the risk of degrading the \x{superior} performance of a
+sequential data structure to that of a list.
+
+TODO: create an illustration with TikZ.
+\begin{tikzpicture}
+\node [draw] (object1) {};
+\end{tikzpicture}
+
+TODO~\cite[42:00]{stroustrup-talk}.
+
+\subsection{Unrolled List}
+
+% TODO.  Talk about unrolled lists and software prefetching.
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

@@ -1,6 +1,253 @@
-\subsection{Cache-Oblivious Model} % Cache-Oblivious Algorithms
+\subsection{Cache-Oblivious Model}
+%           Model-Oblivious Algorithms
+%           Ideal-Cache Model
+%           \Gls{com}
 
-% The \gls{com} is like the \gls{emm}, but we pretend not to know the values of B and M.
-% This seems a bit silly.
+% This one's kind of nice (and Scott Meyers seems to think it has merit).  It also has a
+% Wikipedia page, unlike the EMM, CMM, or IMM (a very rough index of practicality).
+
+% This seems like FUD:
+%
+% > Typical cache-efficient algorithms require tuning to several cache parameters which
+% > are not always available from the manufacturer and often difficult to extract
+% > automatically.
+%      -- http://erikdemaine.org/papers/BRICS2002/paper.pdf
+
+% > In computing, a cache-oblivious algorithm (or cache-transcendent algorithm) is an
+% > algorithm designed to take advantage of a CPU cache without having the size of the
+% > cache (or the length of the cache lines, etc.) as an explicit parameter.
+%      -- https://en.wikipedia.org/wiki/Cache-oblivious_algorithm
+%
+
+The \emph{\gls{com}} or \emph{ideal-cache model}, introduced by
+\textcite{coa-for-publication}, \alts{concedes, leaves, forfeits} most of the
+aforementioned problems to empirical evaluation and further increases the level of
+abstraction.
+%
+Algorithms for the \gls{com}, called \emph{cache-oblivious algorithms}, are designed
+without the \alts{
+  cache size \(M\) or block size \(B\),
+  values of \(M\) and \(B\),
+}
+as parameters.  This seems silly since these values typically can be queried easily
+\x{automatically} at both run and compile time~\cite[50]{drepper2007}
+% See <https://stackoverflow.com/a/7284876>.  Also, cache line sizes are super homogeneous
+% anyway.
+but, perhaps counterintuitively, models one aspect of memory hierarchies better than the
+\gls{emm}.
+% > This model was born out of the necessity to capture the hierarchical nature of memory
+% > organization. [...] Although there have been other attempts to capture this
+% > hierarchical information the cache oblivious model seems to be one of the most simple
+% > and elegant ones.
+%      -- Algorithms for Memory Hierarchies, page 194
+%
+% > The ideal cache oblivious model enables us to reason about a two level memory like the
+% > external memory model but prove results about a multi-level memory model.
+%      -- Algorithms for Memory Hierarchies, page 195
+%
+% > One consequence is that, if a cache-oblivious algorithm performs well between two
+% > levels of the memory hierarchy (nominally called cache and disk), then it must
+% > automatically work well between any two adjacent levels of the memory hierarchy.
+%      -- http://erikdemaine.org/papers/BRICS2002/paper.pdf (erikcom)
+%
+% > Good algorithms for this model give us good algorithms for all values of B and M.
+% > They are especially useful for multi-level caches.
+%      -- https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-851-advanced-data-structures-spring-2012/calendar-and-notes/MIT6_851S12_L7.pdf
+%
+% > From a theoretical standpoint, the cache-oblivious model is appealing because it is
+% > very clean.  A cache-oblivious algorithm is simply a RAM algorithm; it is only the
+% > analysis that differs.  The cache-oblivious model also works well for multilevel
+% > memory hierarchies, unlike the external-memory model, which only captures a two-level
+% > hierarchy.
+%      -- https://pdfs.semanticscholar.org/2f5a/76ccdc71971b746fbe7ff54db86c65a73e91.pdf
+%
+% > Frigo et al. showed that for many problems, an optimal cache-oblivious algorithm will
+% > also be optimal for a machine with more than two memory hierarchy levels.
+%      -- https://en.wikipedia.org/wiki/Cache-oblivious_algorithm
+%
+% > [W]e prove that an optimal cache-oblivious algorithm designed for two levels of memory
+% > is also optimal for multiple levels.  We also prove that any optimal cache-oblivious
+% > algorithm is also optimal in the previously studied HMM and SUMH models.
+%      -- https://pdfs.semanticscholar.org/19ed/9795adc7204d3c9745b3c9f71f8496d26bb6.pdf
+%
+% > We prove that an optimal cache-oblivious algorithm designed for two levels of memory
+% > is also optimal for multiple levels and that the assumption of optimal replacement in
+% > the ideal-cache model can be simulated efficiently by LRU replacement.
+%      -- http://supertech.csail.mit.edu/papers/FrigoLePr99.pdf#page=1, Abstract
+%
+An algorithm that performs well in the \gls{com} performs well across the entire memory
+hierarchy~\cites[194\psq]{afmh}[4]{erikcom}; the same argument \alts[2]{\alts{for,
+showing} asymptotically optimal movement of data, for data movement being
+\x{asymptotically} \emph{optimal}} applies between any two levels of memory%
+~\cite[lemma 15, \pno~10]{coa-paper}.
+% TODO.  Is asymptotic analysis even useful, though?  The whole point of these models is
+% that the hidden constants of "standard" asymptotic analysis matter.
+
+% What does "optimal" mean?
+%
+% > An optimal cache-oblivious algorithm is a cache-oblivious algorithm that uses the
+% > cache optimally (in an asymptotic sense, ignoring constant factors).
+%      -- https://en.wikipedia.org/wiki/Cache-oblivious_algorithm
+%
+% > We say that [an algorithm] is *cache optimal* if the number of cache misses meet the
+% > asymptotic lower bound for I/Os in the EMM for that problem.
+%      -- Algorithms for Memory Hierarchies, page 181
+%
+% > [T]hese algorithms use an optimal amount of work and move data optimally among
+% > multiple levels of cache.
+%      -- http://supertech.csail.mit.edu/papers/FrigoLePr99.pdf#page=1, Abstract
+%
+% > For simplicity in this paper, we use the term "optimal" as a synonym for
+% > "asymptotically optimal", since all our analyses are asymptotic.
+%      -- http://supertech.csail.mit.edu/papers/FrigoLePr99.pdf#page=2, footnote
+Optimal means that the asymptotic~\cite[2]{coa-paper} number of cache misses incurred
+\x{by a cache-oblivious algorithm} matches the problem's lower bound in the \gls{com}.
+
+% > In contrast to the external-memory model, algorithms in the cache-oblivious model
+% > cannot explicitly manage the cache (issue block-read and block-write requests).  This
+% > loss of freedom is necessary because the block and cache sizes are unknown.
+%      -- http://erikdemaine.org/papers/BRICS2002/paper.pdf (erikcom), page 5
+Cache misses take the place of \acrshortpl{io} \x{used in the \gls{emm}} because
+cache-oblivious algorithms don't \alts{manage the cache, read or write cache lines}
+explicitly.  This wouldn't be possible since the algorithms know neither the cache nor
+the cache line size~\cite[5]{erikcom}.
+% > The ideal cache uses the optimal off-line strategy of replacing the cache line whose
+% > next access is furthest in the future
+%      -- http://supertech.csail.mit.edu/papers/FrigoLePr99.pdf#page=1
+Instead, the \gls{com} uses the optimal replacement strategy of evicting the cache line
+that won't be accessed for the longest time in the future (Bélády's Algorithm).  This
+\alts{
+  is strangely \alts{at odds, out of touch, unrealistic} with real-world caches that don't
+  know the future,
+  {seems like out-of-touch, theoretical ivory-tower nonsense},
+}.
+% > The ideal-cache model makes the perhaps-questionable assumptions that there are only
+% > two levels in the memory hierarchy, that memory is managed automatically by an optimal
+% > cache-replacement strategy, and that the cache is fully associative.  We address these
+% > assumptions in Section 6, showing that to a certain extent, these assumptions entail
+% > no loss of generality.
+%      -- http://supertech.csail.mit.edu/papers/FrigoLePr99.pdf#page=2
+%
+% > LRU and FIFO replacement do just as well as optimal replacement up to a constant
+% > factor of memory transfers and up a constant factor wastage of the cache.
+%      -- http://erikdemaine.org/papers/BRICS2002/paper.pdf#page=6 (erikcom)
+%
+% > The same argument extends to a variety of other replacement strategies.
+%      -- http://supertech.csail.mit.edu/papers/Prokop99.pdf#page=46
+%
+% > We show that algorithms with regular complexity bounds (Equation (7.1)) (including all
+% > algorithms heretofore presented) can be ported to less-ideal caches incorporating
+% > least-recently-used (LRU) or first-in, first-out (FIFO) replacement policies [24, p.
+% > 378].
+%      -- http://supertech.csail.mit.edu/papers/Prokop99.pdf#page=51
+%
+% > [I]n many cases [the COM] is provably within a constant factor of a more realistic
+% > cache's performance.
+%      -- https://en.wikipedia.org/wiki/Cache-oblivious_algorithm
+%
+% > [A]s long as the number of memory transfers depends polynomially on the cache size M,
+% > then halving M will only affect the running time by a constant factor.
+%      -- http://erikdemaine.org/papers/BRICS2002/paper.pdf#page=6 (erikcom)
+%
+% > Intuitively, algorithms that slow down by a constant factor when memory (M) is reduced
+% > to half, are called regular.
+%      -- Algorithms for Memory Hierarchies, page 196
+However, \citeauthor{coa-thesis} proves that for many algorithms\footnote{%
+   Those satisfying equation (7.1) in~\cite[46]{coa-thesis}.  If the number of cache
+   misses incurred by the algorithm only \say{depends polynomially on the cache size
+   \(M\)}, the \alts{equation, condition} is satisfied~\cite[6]{erikcom}.
+   % Halving the cache size only increases the number of cache misses by a constant
+   % factor?
+}
+it only increases cache misses by a constant factor compared to various feasible
+replacement strategies%
+% ~\cite[lemma 12, \pno~10]{coa-paper}.%
+% ~\cite[corollary 13, \pno~10]{coa-paper}.%
+~\cite[corollary 19, \pno~46]{coa-thesis}.%
+% See <http://supertech.csail.mit.edu/papers/Prokop99.pdf#page=46>.
+\footnote{%
+   E.g. LRU, FIFO, and random replacement
+}
+
+% According to `coa-paper` (page 9), the "four major assumptions" are:
+% *  automatic replacement
+% *  optimal replacement
+% *  two levels of memory
+% *  full associativity
+%
+% All simplifications and assumptions (I think):
+% *  inherited/adopted from the EMM
+%    *  two levels of memory
+%    *  full associativity
+%    *  tall cache
+%       *  "It is also commonly assumed in external-memory algorithms."
+%             -- http://erikdemaine.org/papers/BRICS2002/paper.pdf#page=7
+%       *  I don't grok this one.
+% *  new
+%    *  automatic, optimal replacement
+%    *  inclusion property
+%       *  "[T]he values stored in cache i are also stored in cache i+1"
+%             -- http://supertech.csail.mit.edu/papers/FrigoLePr99.pdf#page=10
+%
+% TODO: reiterate all simplifications and assumptions?
+
+% > We show that the assumptions of two hierarchical memory models in the literature, in
+% > which memory movement is programmed explicitly, are actually no weaker than ours.
+% > Specifically, we prove (with only minor assumptions) that optimal cache-oblivious
+% > algorithms in the ideal-cache model are also optimal in the hierarchical memory model
+% > (HMM) [1] and in the serial uniform memory hierarchy (SUMH) model [5, 42].
+%      -- http://supertech.csail.mit.edu/papers/Prokop99.pdf#page=12
+%
+% Exactly the same text is in the paper.  But only in the earlier version [1].
+% [1]: https://pdfs.semanticscholar.org/19ed/9795adc7204d3c9745b3c9f71f8496d26bb6.pdf
+%
+% > An optimal cache-oblivious algorithm whose cache-complexity bound satisfies the
+% > regularity condition (14) can be implemented optimally in expectation in multilevel
+% > models with explicit memory management.
+%      -- http://supertech.csail.mit.edu/papers/FrigoLePr99.pdf#page=11, theorem 17
+%
+% > [W]e have shown that optimal cache-oblivious algorithms in the ideal-cache model are
+% > also optimal in the hierarchical memory model (HMM).
+%      -- http://supertech.csail.mit.edu/papers/Prokop99.pdf#page=56
+%
+\citeauthor{coa-thesis} further justifies the model by proving, \say{with only minor
+assumptions}~\cite[12]{coa-thesis}, that cache-oblivious algorithms that are optimal in
+the \gls{com} \alts{can by executed with an optimal amount of \acrshortpl{io}, are also
+optimal} in the \gls{emm}~\cite[theorem 32, \pno~56]{coa-thesis}.  In other words, most
+cache-oblivious algorithms can be systematically transformed into \alts{cache-aware,
+\gls{emm}} algorithms that asymptotically require the same amount of memory transfers in
+the \gls{emm} as the cache-oblivious variant in the \gls{com}.
+
+% TODO: given our motivation that "constant factors matter", what have we been doing here?
+
+% TODO.  A regular algorithm that isn't explicitly for a hierarchical memory model
+% (doesn't explicitly move data between different levels of memory) is already
+% cache-oblivious, right?
+
+% Time to give an example algorithm.  Options:
+% *  matrix transposition
+% *  matrix multiplication
+% *  searching a tree (Van Emde Boas layout vs. standard layout)
+% *  sorting
+%    *  not easy
+%    *  good performance seems problematic
+%    *  looks like the autors of [1] dit it, though (lazy funnelsort)
+% *  something about linked lists?
+%
+% Maybe matrix transposition...
+%
+% [1] https://app.cs.amherst.edu/~ccmcgeoch/cs34/papers/a2_2-brodal.pdf
+\subsubsection{Cache-Oblivious Matrix Transposition}
+
+% Work by Erik Demaine:
+%
+% [1]: http://erikdemaine.org/papers/BRICS2002/paper.pdf
+%      "Cache-Oblivious Algorithms and Data Structures - 2002"
+% [2]: https://web.archive.org/web/20160320051801/http://courses.csail.mit.edu/6.897/spring03/scribe_notes/L15/lecture15.pdf
+%      "6.897: Advanced Data Structures - Spring 2003"
+% [3]: https://pdfs.semanticscholar.org/2f5a/76ccdc71971b746fbe7ff54db86c65a73e91.pdf
+%      "6.897: Advanced Data Structures - Spring 2005"
+% [4]: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-851-advanced-data-structures-spring-2012/calendar-and-notes/MIT6_851S12_L7.pdf
+%      "6.851: Advanced Data Structures - Spring 2012"
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

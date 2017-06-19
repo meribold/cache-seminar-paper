@@ -27,8 +27,21 @@
 % [5]: https://tex.stackexchange.com/q/43119 "Improved kerning in fractions?"
 \usepackage{nicefrac}
 
-% Prevent floats from moving into another section (https://ctan.org/pkg/placeins).
-\usepackage[above, below, section]{placeins}
+% XXX: I used to specify the `section` option here to prevent floats from moving into
+% another section.  It redefines the `\section` command to add a `\FloatBarrier`.  Turns
+% out this doesn't work the way I expected.  Apparently, `\FloatBarrier` just issues
+% `\clearpage` if there are floats queued [1][2].  The result can be mostly empty pages.
+%
+% [1]: https://tex.stackexchange.com/q/223917#comment525956_223917
+% [2]: https://tex.stackexchange.com/q/272858#comment655658_272858
+% [3]: https://tex.stackexchange.com/q/88657
+% [4]: https://ctan.org/pkg/placeins)
+\usepackage[above, below]{placeins}
+
+% TODO: `\usepackage{afterpage}`?
+%
+% [1]: https://tex.stackexchange.com/q/88657
+% [2]: https://www.ctan.org/pkg/afterpage
 
 % Stack for cross-referencing.  XXX: the packages have to be loaded in this order (see the
 % cleveref manual).

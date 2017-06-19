@@ -11,6 +11,10 @@
 \usepackage{mathtools}      % Improved facilities for typesetting mathematical formulae
 \usepackage{dirtytalk}      % ...
 
+% Used to put TikZ graphics into their own dedicated files and compile them separately.
+% From the manual: "Load the standalonepackage very early in the main document."
+\usepackage{standalone}
+
 % `$\nicefrac{a}{b}$` looks better than `$a/b$` in my opinion.  I also think it looks
 % better than `$\sfrac{a}{b}` from the more recent [xfrac][5] package.  See [3], [4], and
 % [5].
@@ -139,6 +143,7 @@
 \loadglsentries{tex/glossary}
 
 \usepackage{tikz}
+\usetikzlibrary{math}
 \input{tex/datavis.tex}
 
 % See <https://tex.stackexchange.com/a/155317>, <https://tex.stackexchange.com/a/320521>

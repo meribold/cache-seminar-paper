@@ -56,7 +56,7 @@ and the added indirection, but the more cache-friendly memory access pattern of
 Using \mintinline{cpp}{std::list} incurs \say{random access to memory} in this
 example~\cite[6]{bigos}.
 
-\subsection{``True OO Style''}
+\subsection{``True'' OO Style}
 
 % TODO.  Having a vector of pointers to dynamically allocated object derived from some
 % base class in true OO style (tm) probably isn't going to make the cache happy.  Bjarne
@@ -73,15 +73,20 @@ example~\cite[6]{bigos}.
 
 In object-oriented systems, objects are typically referred to by pointers to a common base
 class.  A polymorphic container of such pointers allows for dynamic dispatch of virtual
-functions.  This carries the risk of degrading the \x{superior} performance of a
-sequential data structure to that of a list.
+functions.  However, this carries the risk of degrading the \x{superior} performance of a
+sequential data structure to that of a list%
+% ~\cite[\href{https://youtu.be/0iWb_qi2-uI?t=51m22s}{51:22}]{stroustrup-talk}.
+~\cite[51:22]{stroustrup-talk}.
+See \cref{fig:true-oo}.
 
-TODO: create an illustration with TikZ.
-\begin{tikzpicture}
-\node [draw] (object1) {};
-\end{tikzpicture}
-
-TODO~\cite[42:00]{stroustrup-talk}.
+\begin{figure}
+   \centering
+   \input{tex/oo-picture}
+   \captionsetup{width=.9\linewidth} % FIXME: hacks!
+   \caption[Array of Pointers]{Array of Pointers; while the array is compact, the actual
+   objects may not be laid out sequentially in memory.}
+   \label{fig:true-oo}
+\end{figure}
 
 \subsection{Unrolled List}
 

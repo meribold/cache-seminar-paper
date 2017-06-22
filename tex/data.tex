@@ -1,52 +1,3 @@
-% TODO: put this in a separate file and include it in the preamble?
-\pgfplotstableset{
-   every head row/.style={before row=\toprule, after row=\midrule},
-   every last row/.style={after row=\bottomrule},
-   % Define a reusable custom style called 'array size' for a table column of array sizes
-   % in KiB.  The syntax is the same as passing the key-value pairs directly to
-   % `columns/<col name>/.style`.
-   array size/.style={
-      assign column name={Array Size (KiB)},
-      numeric as string type,
-      % Using `divide by=1024` or `preproc/expr={##1/1024}` performs floating-point
-      % math and introduces errors.  This abomination hacked together by trial and
-      % error doesn't.
-      preproc cell content/.code={%
-         \pgfkeysgetvalue{/pgfplots/table/@cell content}\a
-         \newcount\b
-         \b=\number\a
-         \divide\b by 1024
-         \pgfkeyssetvalue{/pgfplots/table/@cell content}{\the\b}
-      },
-   },
-   % Define a column style called 'cycles'.
-   cycles/.style={
-      assign column name={Cycles / Iteration},
-      string type,
-      column type={S[round-mode=places, round-precision=2]},
-      % column type=c, dec sep align,
-      % fixed, fixed zerofill, precision=3,
-   },
-   % Define a complete table style.
-   array size vs cycles/.style={
-      columns={x, y, x, y},
-      columns/x/.style={array size},
-      columns/y/.style={cycles},
-      % Split the table into two (super?) columns.  See page 42 and 43 of the
-      % pgfplotstable manual.
-      display columns/0/.style={
-         select equal part entry of={0}{2},
-         column type={S[table-format=3.0]},
-      },
-      display columns/1/.style={select equal part entry of={0}{2}},
-      display columns/2/.style={
-         select equal part entry of={1}{2},
-         column type={S[table-format=6.0]},
-      },
-      display columns/3/.style={select equal part entry of={1}{2}},
-   },
-}
-
 \clearpage
 \section{Data}
 \label{app:data}
@@ -71,18 +22,7 @@
 
 % \begin{table}[hp]
 \begin{center}
-   \pgfplotstabletypeset[
-      % See <https://tex.stackexchange.com/q/131081/#comment311347_137554>.
-      assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
-      % every head row/.style={%
-         % output empty row,
-         % before row={%
-         %    \\\toprule
-         %    Array Sizes (KiB) & \multicolumn{2}{c}{Cycles / Iteration} \\
-         % },
-      % },
-      array size vs cycles,
-   ]{access-times/access-times.csv}
+   \input{tex/graphics/access-time-table}
    % \caption{Access Times for Random Reads}
    \captionof{table}{Access Times for Random Reads}
    \label{tab:access-times}

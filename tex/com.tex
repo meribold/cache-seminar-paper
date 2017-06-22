@@ -166,7 +166,7 @@ replacement strategies%
 ~\cite[corollary 19, \pno~46]{coa-thesis}.%
 % See <http://supertech.csail.mit.edu/papers/Prokop99.pdf#page=46>.
 \footnote{%
-   E.g. LRU, FIFO, and random replacement
+   e.g. LRU, FIFO, and random replacement
 }
 
 % According to `coa-paper` (page 9), the "four major assumptions" are:
@@ -238,6 +238,82 @@ the \gls{emm} as the cache-oblivious variant in the \gls{com}.
 %
 % [1] https://app.cs.amherst.edu/~ccmcgeoch/cs34/papers/a2_2-brodal.pdf
 \subsubsection{Cache-Oblivious Matrix Transposition}
+
+The straightforward way to transpose \alts{
+   an \(m\times n\) matrix \(D\),
+   a matrix \(D\in\mathbb{R}^{m\times{}n}\),
+}
+out-of-place is to use two loops like so:
+\begin{minted}[autogobble]{c}
+   for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+         E[j][i] = D[i][j];
+\end{minted}
+Assuming \(D\) and \(E\) are stored in row-major layout (as they would be in the C and
+\cpp{} languages), the reads from \(D\) are sequential memory accesses but the writes to
+\(E\) are not.
+
+\alts{When \(D^\mathsf{T}\) has, For} sufficiently long rows (\(m > B\))\footnote{%
+   \(D^\mathsf{T}\) will be an \(n\times m\) matrix, so \(m\) is its number of columns.
+},
+every consecutive access will be to a different cache line.  If it has sufficiently many
+rows, no access will be to a cache line that is still loaded; once the inner loop
+completes, the cache line holding \alts[2]{\mintinline{c}{E[0][i]}, \(B_{0,i}\)} will have
+been evicted.%
+\footnote{%
+   assuming LRU or FIFO replacement % FIXME: but we use optimal replacement!
+}
+Therefore, this algorithm incurs \(\Theta(mn)\) cache misses.
+
+The algorithm is \alts{by definition, technically} already cache-oblivious since it
+doesn't use \(M\) or \(B\), but it is not optimal\x{ in the \gls{com}}.  We can do better
+with a divide-and-conquer approach.
+% The code may only be 72 characters wide (75 when counting the indentation that will be
+% stripped).  Note that the array arguments will decay to pointers.
+\begin{minted}[autogobble, mathescape]{c}
+   // Transpose the submatrix $(d_{ij})_{i\in I,\:j\in J}$.
+   void transpose(int I[2], int J[2], int D[m][n], int E[n][m]) {
+      int num_rows = 1 + I[1] - I[0];
+      int num_cols = 1 + J[1] - J[0];
+      if (num_cols == 1 && num_rows == 1) {
+         E[J[0]][I[0]] = D[I[0]][J[0]];
+      } else if (num_cols <= num_rows) {
+         // Horizontally slice D into two submatrices and recurse.
+         transpose((int[2]){I[0], I[0] + num_rows / 2 - 1}, J, D, E);
+         transpose((int[2]){I[0] + num_rows / 2, I[1]}, J, D, E);
+      } else { /* Vertically slice D analogously... */ }
+   }
+\end{minted}
+% // Transpose the submatrix $(d_{ij}),\: i\in I, j\in J$.
+% // Transpose the submatrix $(d_{ij})_{I_0<i<I_1, J_0<j<J_1}$
+% // Transpose the submatrix $D\left[...\right]$
+
+\begin{figure}
+   \centering
+   \begin{tikzpicture}
+      \datavisualization
+      [scientific axes=clean,
+       x axis={logarithmic,
+               label={Matrix Size (\si{\mebi\byte})}, length=0.8\textwidth, ticks={
+                  major at={1, 2, 4, 8, 16, 32, 64, 128, 256},
+               },
+              },
+       y axis={include value=0, grid=at ticks, label={Speedup}, length=6cm,
+         % ticks={major also at={1}}
+       },
+       visualize as scatter,
+       scatter={style={mark=*, mark options={scale=.65}}}]
+         data [read from file=xpose/speedup.csv, separator=\space];
+   \end{tikzpicture}
+   \caption{TODO}
+   \label{fig:TODO}
+\end{figure}
+
+% > A cache-oblivious algorithm is simply a RAM algorithm; it is only the analysis that
+% > differs.
+%      -- https://pdfs.semanticscholar.org/2f5a/76ccdc71971b746fbe7ff54db86c65a73e91.pdf
+%
+% Algorithms are cache-oblivious by default.
 
 % Work by Erik Demaine:
 %

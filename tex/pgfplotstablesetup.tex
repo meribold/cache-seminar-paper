@@ -1,0 +1,82 @@
+% Stack for generating tables from CSV files.  Loading is done by [pgfplotstable].  It can
+% also round, format and post-process data.  See [1].
+% [siunitx] adds the `S` column type for advanced aligning in tables like around the
+% decimal marker.  Getting this to work is a bit tricky; see [2].  There is some support
+% for aligning around the decimal marker in [pgfplotstable] (see [3]), but I couldn't get
+% it to work.  One can also right-align numbers relatively to each other but still center
+% the column as a whole with [siunitx] (see [4]).
+% [pgfplotstable]: https://ctan.org/pkg/pgfplotstable
+% [siunitx]: https://ctan.org/pkg/siunitx
+% [1]: https://tex.stackexchange.com/q/146716
+% [2]: https://tex.stackexchange.com/q/131081
+% [3]: https://tex.stackexchange.com/q/276485
+% [4]: https://tex.stackexchange.com/q/9203
+\usepackage{pgfplotstable}
+% This gets loaded by the `pgfplotstable` sub-package as far as I know.
+%
+% \usepackage{pgfplots}
+%
+% It then suggests:
+%
+%    Package pgfplots Warning: running in backwards compatibility mode (unsuitable t
+%    ick labels; missing features). Consider writing \pgfplotsset{compat=1.14} into
+%    your preamble
+%
+% So I guess I'll go that.
+\pgfplotsset{compat=1.14}
+\usepackage[binary-units]{siunitx} % Load `\kibi` and `\mebi` etc. (`binary-units`).
+% These packages are recommended by [pgfplotstable].  The booktabs package adds the
+% `\toprule`, `\midrule`, and `\bottomrule` commands for better looking tables.  See [5].
+\usepackage{booktabs, array, colortbl}
+% [booktabs]: https://ctan.org/pkg/booktabs
+% [5]: https://en.wikibooks.org/wiki/LaTeX/Tables#Professional_tables
+
+\pgfplotstableset{
+   every head row/.style={before row=\toprule, after row=\midrule},
+   every last row/.style={after row=\bottomrule},
+   % Define a reusable custom style called 'array size' for a table column of array sizes
+   % in KiB.  The syntax is the same as passing the key-value pairs directly to
+   % `columns/<col name>/.style`.
+   array size/.style={
+      assign column name={Array Size (KiB)},
+      numeric as string type,
+      % Using `divide by=1024` or `preproc/expr={##1/1024}` performs floating-point
+      % math and introduces errors.  This abomination hacked together by trial and
+      % error doesn't.
+      preproc cell content/.code={%
+         \pgfkeysgetvalue{/pgfplots/table/@cell content}\a
+         \newcount\b
+         \b=\number\a
+         \divide\b by 1024
+         \pgfkeyssetvalue{/pgfplots/table/@cell content}{\the\b}
+      },
+   },
+   % Define a column style called 'cycles'.
+   cycles/.style={
+      assign column name={Cycles / Iteration},
+      string type,
+      column type={S[round-mode=places, round-precision=2]},
+      % column type=c, dec sep align,
+      % fixed, fixed zerofill, precision=3,
+   },
+   % Define a complete table style.
+   array size vs cycles/.style={
+      columns={x, y, x, y},
+      columns/x/.style={array size},
+      columns/y/.style={cycles},
+      % Split the table into two (super?) columns.  See page 42 and 43 of the
+      % pgfplotstable manual.
+      display columns/0/.style={
+         select equal part entry of={0}{2},
+         column type={S[table-format=3.0]},
+      },
+      display columns/1/.style={select equal part entry of={0}{2}},
+      display columns/2/.style={
+         select equal part entry of={1}{2},
+         column type={S[table-format=6.0]},
+      },
+      display columns/3/.style={select equal part entry of={1}{2}},
+   },
+}
+
+% vim: ft=tex tw=90 sts=-1 sw=3 et fdm=marker

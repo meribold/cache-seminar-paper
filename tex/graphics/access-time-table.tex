@@ -1,0 +1,27 @@
+\documentclass[border=1pt]{standalone}
+
+\input{tex/pgfplotstablesetup}
+
+% FIXME: DRY.
+\pgfkeys{%
+   /pgf/number format/.cd,
+   1000 sep={\,},
+   min exponent for 1000 sep=4,
+}
+
+\begin{document}
+\pgfplotstabletypeset[
+   % See <https://tex.stackexchange.com/q/131081/#comment311347_137554>.
+   assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
+   % every head row/.style={%
+      % output empty row,
+      % before row={%
+      %    \\\toprule
+      %    Array Sizes (KiB) & \multicolumn{2}{c}{Cycles / Iteration} \\
+      % },
+   % },
+   array size vs cycles,
+]{access-times/access-times.csv}
+\end{document}
+
+% vim: ft=tex tw=90 sts=-1 sw=3 et fdm=marker

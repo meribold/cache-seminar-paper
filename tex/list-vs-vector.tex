@@ -2,8 +2,8 @@
 \label{sec:lvv}
 
 \alts{%
-   The C++ program shown in \cref{lst:ithare},
-   The following C++ program,
+   The \cpp{} program shown in \cref{lst:ithare},
+   The following \cpp{} program,
 }%
 , adapted from \textcite{bigos}, initializes a number of \acrshort{stl} containers
 with random numbers and measures the processor time needed to \alts{sum all of them,
@@ -56,7 +56,9 @@ and the added indirection, but the more cache-friendly memory access pattern of
 Using \mintinline{cpp}{std::list} incurs \say{random access to memory} in this
 example~\cite[6]{bigos}.
 
-\subsection{``True'' OO Style}
+\subsection{Notes}
+
+\subsubsection{``True'' OO Style}
 
 % TODO.  Having a vector of pointers to dynamically allocated object derived from some
 % base class in true OO style (tm) probably isn't going to make the cache happy.  Bjarne
@@ -71,7 +73,7 @@ example~\cite[6]{bigos}.
 
 % A nice compact, flat container isn't going to cut it if it contains pointers.
 
-In object-oriented systems, objects are typically referred to by pointers to a common base
+In \gls{oo} systems, variables are typically referred to by pointers to a common base
 class.  A polymorphic container of such pointers allows for dynamic dispatch of virtual
 functions.  However, this carries the risk of degrading the \x{superior} performance of a
 sequential data structure to that of a list%
@@ -83,12 +85,13 @@ See \cref{fig:true-oo}.
    \centering
    \input{tex/oo-picture}
    \captionsetup{width=.9\linewidth} % FIXME: hacks!
-   \caption[Array of Pointers]{Array of Pointers; while the array is compact, the actual
-   objects may not be laid out sequentially in memory.}
+   \caption[Array of Pointers]{Array of Pointers; the array is compact but the actual
+   objects may \alts{be scattered across memory pretty randomly, not be laid out
+   sequentially in memory}.}
    \label{fig:true-oo}
 \end{figure}
 
-\subsection{Unrolled List}
+\subsubsection{Unrolled List}
 
 % TODO.  Talk about unrolled lists and software prefetching.
 

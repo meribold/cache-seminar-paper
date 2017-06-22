@@ -1,0 +1,56 @@
+/* -*- fill-column: 90; -*- */
+
+/* Reduce certain padding specified in `reveal.css`. */
+.reveal .slides > section,
+.reveal .slides > section > section {
+    padding: 5px 0px;
+}
+
+/* Make the background a bit darker than the default of `night.css`. */
+body {
+    background: #060606;
+    background-color: #060606;
+}
+
+.reveal {
+    font-family: "Ubuntu", sans-serif;
+    font-size: 34px;
+    font-weight: normal;
+    /* Reducing contrast of something that should be displayed by a beamer is risky
+     (`night.css uses #eee). */
+    color: #fff;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+    font-family: "Ubuntu", sans-serif;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 0em;
+}
+
+.reveal h1 {
+    font-size: 2.3em;
+}
+
+.reveal h2 {
+    font-size: 1.7em;
+}
+
+.reveal pre {
+    margin: auto;
+    font-size: 0.63em;
+    line-height: normal;
+}
+
+.reveal pre code {
+    max-height: unset;
+}
+
+/* .hljs { */
+/*     background: #000 !important; */
+/* } */

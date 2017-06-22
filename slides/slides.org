@@ -1,0 +1,127 @@
+#+TITLE: Optimizing For Hardware Caches
+#+AUTHOR: Lukas Waymann
+
+#+LANGUAGE: en
+#+REVEAL_THEME: night
+#+REVEAL_EXTRA_CSS: extra.css
+#+REVEAL_HIGHLIGHT_CSS: ir-black.css
+#+REVEAL_PLUGINS: (highlight notes)
+#+OPTIONS: reveal_control:nil num:nil toc:nil reveal_title_slide:"<h1>%t</h1>"
+
+# XXX: this only works when `org-export-allow-bind-keywords` is non-`nil`.  See
+# http://orgmode.org/org.html#index-g_t_0023_002bBIND-1631
+#+BIND: org-html-metadata-timestamp-format "%Y-%m-%d"
+
+* Hardware Caches
+  #+ATTR_REVEAL: :frag (roll-in)
+- Store subset of data from slower storage
+- Managed by hardware
+- Small
+- Fast
+
+** Why though?
+   #+ATTR_REVEAL: :frag (roll-in)
+ - Fast is pricey
+ - Slow is cheap
+ - Speed of light
+
+** 
+   \begin{align*}
+   \frac{3\cdot10^8 \text{ m/s}}{3 \text{ GHz}}
+   =10 \text{ cm}
+   \end{align*}
+   #+ATTR_REVEAL: :frag (roll-in)
+   \rightarrow 5 cm add more than one cycle of latency.
+
+** Types
+   #+ATTR_REVEAL: :frag (roll-in)
+ - Data cache
+ - Instruction cache
+ - Translation lookaside buffer (TLB)
+
+** Levels
+   #+ATTR_REVEAL: :frag (roll-in)
+   Typically 2 or 3 on x86
+   #+ATTR_REVEAL: :frag (roll-in)
+ - L1d and L1i
+   - Split and private
+ - L2
+   - Unified and shared
+ - L3
+   - Unified and shared
+
+** 
+   #+CAPTION: Typical cache sizes on x86
+   | L1        | L2          | L3       |
+   |-----------+-------------+----------|
+   | /         |             |          |
+   | 32-64 KiB | 256-512 KiB | 2-16 MiB |
+
+** Reading cache sizes
+   #+NAME: lscpu
+   #+BEGIN_SRC bash :exports both :results output code
+   lscpu | grep 'L1\|L2\|L3'
+   #+END_SRC
+
+   #+RESULTS: lscpu
+   #+BEGIN_SRC bash
+   L1d cache:             32K
+   L1i cache:             32K
+   L2 cache:              512K
+   #+END_SRC
+
+** 
+   #+CAPTION: Typical access times on x86 (cycles)
+   |  L1 |    L2 |    L3 | Main Memory |
+   |-----+-------+-------+-------------|
+   | 3-4 | 10-12 | 30-70 |     100-150 |
+
+** Verify?
+   #+ATTR_REVEAL: :frag (roll-in)
+ - Randomly access memory
+   \to each access is to a different cache line
+ - Measure CPU cycles with hardware performance counter
+ - Vary working set size
+** 
+#+BEGIN_SRC C
+  #define N 100000000  // 100 million
+
+  struct elem {
+     struct elem *next;
+  } array[SIZE];
+
+  int main() {
+     for (size_t i = 0; i < SIZE - 1; ++i) array[i].next = &array[i + 1];
+     array[SIZE - 1].next = array;
+     // Fisher-Yates shuffle the array.
+     for (size_t i = 0; i < SIZE - 1; ++i) {
+        size_t j = i + rand() % (SIZE - i);  // j is in [i, SIZE).
+        struct elem temp = array[i];  // Swap array[i] and array[j].
+        array[i] = array[j];
+        array[j] = temp;
+     }
+  #ifndef BASELINE
+     int64_t dummy = 0;
+     struct elem *i = array;
+     for (size_t n = 0; n < N; ++n) {
+        dummy += (int64_t)i;
+        i = i->next;
+     }
+     printf("%d\n", dummy);
+  #endif
+  }
+#+END_SRC
+** 
+   [[./access-time-plot.png]]
+   #+REVEAL: split
+   [[./access-time-table.png]]
+** 
+   :PROPERTIES:
+   :reveal_background: http://orgmode.org/img/org-mode-unicorn-logo.svg
+   :reveal_background_size: 150px 160px
+   :reveal_background_repeat: repeat
+   :reveal_background_trans: slide
+   :reveal_foreground: #123456
+   :END:
+   #+CAPTION: "I bless your computer, my child!"
+   [[https://stallman.org/saintignucius.jpg]]

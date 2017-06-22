@@ -11,22 +11,23 @@ MAKEFLAGS += --no-builtin-rules
 # [1]: https://www.gnu.org/prep/standards/standards.html#Makefile-Basics
 
 CC       := gcc
-CFLAGS   += -Wall -Wextra -march=native -O2
+CFLAGS   += -std=c11 -Wall -Wextra -march=native -O2
 CXX      := g++
 CXXFLAGS := -std=c++14 -Wall -Wextra -march=native -O3
 OCOUNT   := sudo chrt -f 99 ocount -e CPU_CLK_UNHALTED
 
-.PHONY: all clean
+.PHONY: all clean graphics
 
 # Set the default goal.
-all: paper.pdf
+all: paper.pdf graphics
 
 texfiles := $(shell find -name '*.tex')
 
 paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib \
    line-size/line-size.csv access-times/access-times.csv \
    seq-access-times/access-times.csv seq-access-times/cpu-bound/access-times.csv \
-   ithare/speedup.txt
+   ithare/speedup.txt xpose/speedup.csv
+   # xpose/xpose.csv xpose/xpose-simple.csv
    # seq-access-times/step8/access-times.csv array-sum/size-time.csv
 	latexmk -quiet -pdf -shell-escape '$(@:.pdf=.tex)'
 
@@ -82,12 +83,32 @@ $(seq8-access-time-results): seq-access-times/access-times.c
 	$(CC) $(CFLAGS) -fno-prefetch-loop-arrays -DSIZE=$$((size/8)) -DSTEP=8 -DBASELINE '$<' && \
 	$(OCOUNT) ./a.out | tee -a '$@'
 
-# TODO: `chrt`.
 line-size/line-size.csv: line-size/line-size.c
 	echo 'x y' > '$@'
 	for ((i=0; i<=10; i=i+1)); do \
-	   $(CC) $(CFLAGS) -DSTEP=$$((2**i)) '$<' && ./a.out >> '$@'; \
+	   $(CC) $(CFLAGS) -DSTEP=$$((2**i)) '$<' && \
+	   sudo chrt -f 99 ./a.out >> '$@'; \
 	done
+
+xpose/xpose.csv: xpose/xpose.c
+	echo 'x y' > '$@'
+	for ((i=0; i<=32; i=i+1)); do \
+	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
+	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size '$<' && \
+	   sudo chrt -f 99 ./a.out >> '$@'; \
+	done
+
+xpose/xpose-simple.csv: xpose/xpose.c
+	echo 'x y' > '$@'
+	for ((i=0; i<=32; i=i+1)); do \
+	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
+	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size -DSIMPLE '$<' && \
+	   sudo chrt -f 99 ./a.out >> '$@'; \
+	done
+
+# `NR>1` skips the first line.  See <https://unix.stackexchange.com/q/198065>.
+xpose/speedup.csv: xpose/xpose.csv xpose/xpose-simple.csv
+	paste $^ | awk 'BEGIN { print "x y" } NR>1 { print $$1/1024" "$$2/$$4 }' > '$@'
 
 ithare/list.out: ithare/list-vs-vector.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) '$<' -o ithare/list
@@ -114,6 +135,22 @@ access-times/access-times.csv : out-files := $(access-time-results)
 seq-access-times/access-times.csv : out-files := $(seq-access-time-results)
 seq-access-times/cpu-bound/access-times.csv : out-files := $(cpu-bound-access-results)
 seq-access-times/step8/access-times.csv : out-files := $(seq8-access-time-results)
+
+graphics: slides/access-time-plot.png slides/access-time-table.png
+
+# `convert(1)` is part of ImageMagick.  This type of conversion requires Ghostscript [1].
+#
+# [1]: https://www.imagemagick.org/discourse-server/viewtopic.php?t=25823
+# [2]: https://stackoverflow.com/q/6605006#comment26339769_6605085
+# [3]: https://stackoverflow.com/q/2322750
+slides/%.png: graphics/%.pdf
+	convert -density 600 '$<' -background white -alpha remove '$@'
+
+graphics/%.pdf: tex/graphics/%.tex
+	latexmk -quiet -pdf '$<' -outdir=graphics
+
+# See <https://www.gnu.org/software/make/manual/html_node/Chained-Rules.html>.
+.PRECIOUS: graphics/%.pdf
 
 .SECONDEXPANSION:
 

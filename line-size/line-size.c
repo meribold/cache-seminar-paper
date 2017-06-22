@@ -1,9 +1,9 @@
 // vim: tw=72 sts=-1 sw=3 et cms=//%s
 
-#include "stdint.h"  // int64_t, size_t
-#include "stdio.h"   // printf
-#include "stdlib.h"  // calloc
-#include "time.h"    // clock
+#include <stdint.h>  // int64_t, size_t
+#include <stdio.h>   // printf
+#include <stdlib.h>  // calloc
+#include <time.h>    // clock
 
 // Adapted from <igoro.com/archive/gallery-of-processor-cache-effects/>.
 //

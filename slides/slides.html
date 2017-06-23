@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Hardware Caches and Optimization</title>
+<meta name="author" content="(Lukas Waymann)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="./reveal.js/css/reveal.css"/>
+
+<link rel="stylesheet" href="./reveal.js/css/theme/night.css" id="theme"/>
+
+<link rel="stylesheet" href="extra.css"/>
+<link rel="stylesheet" href="ir-black.css"/>
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = './reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide"><h1>Hardware Caches and Optimization</h1>
+</section>
+
+<section>
+<section id="slide-org6f07e26">
+<h2 id="org6f07e26">Hardware Caches</h2>
+<ul>
+<li class="fragment appear">Store subset of data from slower storage</li>
+<li class="fragment appear">Managed by hardware</li>
+<li class="fragment appear">Small</li>
+<li class="fragment appear">Fast</li>
+
+</ul>
+
+</section>
+<section id="slide-orgee1ff59">
+<h3 id="orgee1ff59">Why though?</h3>
+<ul>
+<li class="fragment appear">Fast is pricey
+<ul>
+<li>SRAM</li>
+
+</ul></li>
+<li class="fragment appear">Slow is cheap
+<ul>
+<li>DRAM</li>
+
+</ul></li>
+<li class="fragment appear">Speed of light</li>
+
+</ul>
+
+</section>
+<section id="slide-orgfd6bb2f">
+<h3 id="orgfd6bb2f"></h3>
+<div>
+\begin{align*}
+\frac{3\cdot10^8 \text{ m/s}}{3 \text{ GHz}} = 10 \text{ cm}
+\end{align*}
+
+</div>
+<p class="fragment (appear)">
+&rarr; 5 cm add more than one cycle of latency.
+</p>
+
+</section>
+<section id="slide-org4e3b694">
+<h3 id="org4e3b694">Types</h3>
+<ul>
+<li class="fragment appear">Data cache</li>
+<li class="fragment appear">Instruction cache</li>
+<li class="fragment appear">Translation lookaside buffer (TLB)</li>
+
+</ul>
+
+</section>
+<section id="slide-org2b40ca8">
+<h3 id="org2b40ca8">Levels</h3>
+<p class="fragment (appear)">
+Typically 2 or 3 on x86
+</p>
+<ul>
+<li class="fragment appear">L1d and L1i
+<ul>
+<li>Split and private</li>
+
+</ul></li>
+<li class="fragment appear">L2
+<ul>
+<li>Unified and shared</li>
+
+</ul></li>
+<li class="fragment appear">L3
+<ul>
+<li>Unified and shared</li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-orgcf0bcd6">
+<h3 id="orgcf0bcd6"></h3>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 1:</span> Typical cache sizes on x86</caption>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">L1</th>
+<th scope="col" class="org-left">L2</th>
+<th scope="col" class="org-left">L3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">32-64 KiB</td>
+<td class="org-left">256-512 KiB</td>
+<td class="org-left">2-16 MiB</td>
+</tr>
+</tbody>
+</table>
+
+</section>
+<section id="slide-org28301b8">
+<h3 id="org28301b8">Reading cache sizes</h3>
+<div class="org-src-container">
+
+<pre id="lscpu"><code class="bash" >lscpu | grep 'L1\|L2\|L3'
+</code></pre>
+</div>
+
+<div class="org-src-container">
+
+<pre><code class="bash" >L1d cache:             32K
+L1i cache:             32K
+L2 cache:              512K
+</code></pre>
+</div>
+
+</section>
+<section id="slide-org9f21ecf">
+<h3 id="org9f21ecf"></h3>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 2:</span> Typical access times on x86 (cycles)</caption>
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">L1</th>
+<th scope="col" class="org-right">L2</th>
+<th scope="col" class="org-right">L3</th>
+<th scope="col" class="org-right">Main Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">3-4</td>
+<td class="org-right">10-12</td>
+<td class="org-right">30-70</td>
+<td class="org-right">100-150</td>
+</tr>
+</tbody>
+</table>
+
+</section>
+<section id="slide-orgbcc0e47">
+<h3 id="orgbcc0e47">Verify?</h3>
+<ul>
+<li class="fragment appear">Randomly access memory
+&rarr; each access is to a different cache line</li>
+<li class="fragment appear">Measure CPU cycles with hardware performance counter</li>
+<li class="fragment appear">Vary working set size</li>
+
+</ul>
+</section>
+<section id="slide-access-times">
+<h3 id="access-times"><a id="org83e498a"></a></h3>
+<div class="org-src-container">
+
+<pre><code class="C" >#define N 100000000  // 100 million
+
+struct elem {
+   struct elem *next;
+} array[SIZE];
+
+int main() {
+   for (size_t i = 0; i &lt; SIZE - 1; ++i) array[i].next = &amp;array[i + 1];
+   array[SIZE - 1].next = array;
+   // Fisher-Yates shuffle the array.
+   for (size_t i = 0; i &lt; SIZE - 1; ++i) {
+      size_t j = i + rand() % (SIZE - i);  // j is in [i, SIZE).
+      struct elem temp = array[i];  // Swap array[i] and array[j].
+      array[i] = array[j];
+      array[j] = temp;
+   }
+#ifndef BASELINE
+   int64_t dummy = 0;
+   struct elem *i = array;
+   for (size_t n = 0; n &lt; N; ++n) {
+      dummy += (int64_t)i;
+      i = i-&gt;next;
+   }
+   printf("%d\n", dummy);
+#endif
+}
+</code></pre>
+</div>
+
+</section>
+<section id="slide-orgae6768c">
+<h3 id="orgae6768c"></h3>
+
+<div class="figure">
+<p><img src="access-time-plot.png" alt="access-time-plot.png" />
+</p>
+</div>
+</section>
+<section >
+
+<div class="figure">
+<p><img src="access-time-table.png" alt="access-time-table.png" />
+</p>
+</div>
+<aside class="notes">
+<ul>
+<li>The data suggests that keeping the <i>working set</i> a process uses
+during a time interval small can yield dramatic performance
+improvements.
+&rarr; <a href="https://en.wikipedia.org/wiki/Loop_nest_optimization">Loop nest optimization (blocking)</a></li>
+
+</ul>
+
+</aside>
+
+</section>
+<section id="slide-org9c2fd31">
+<h3 id="org9c2fd31">TLB</h3>
+<aside class="notes">
+<p>
+Suppose a 4-level page table and an L1d access time of 3 cycles:
+virtual to physical address translation takes at least 12 cycles
+(that's without L1d misses).  Maybe draw an illustration on the
+blackboard.
+</p>
+<blockquote nil>
+<p>
+These accesses cannot be parallelized since they depend on the
+previous lookup’s result.
+    &#x2013; Drepper
+</p>
+</blockquote>
+
+</aside>
+
+<ul>
+<li>Caching page tables doesn't work out: page walk through multi-level table is still slow<br /></li>
+<li>How to speed up physical to virtual address translation?</li>
+
+</ul>
+
+<p class="fragment appear">
+&rarr; Dedicated cache for <b>complete</b> virtual-to-physical address
+correspondence of pages
+</p>
+
+</section>
+<section id="slide-orgda2c017">
+<h4 id="orgda2c017"></h4>
+<div class="org-src-container">
+
+<pre><code class="bash" >grep TLB /proc/cpuinfo 
+</code></pre>
+</div>
+
+<div class="org-src-container">
+
+<pre><code class="bash" >TLB size	: 1024 4K pages
+TLB size	: 1024 4K pages
+</code></pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-org4e5bb14">
+<h2 id="org4e5bb14">Key Concepts</h2>
+
+</section>
+</section>
+<section>
+<section id="slide-orge1a89ad">
+<h2 id="orge1a89ad"></h2>
+<p data-fragment-index="1" class="fragment fade-out">
+Loop over an array will different increments
+</p>
+
+<div class="org-src-container">
+
+<pre><code class="C" >#define SIZE 67108864  // 64 * 1024 * 1024.  The array will be 512 MiB.
+
+int main() {
+   int64_t* array = (int64_t*)calloc(SIZE, sizeof(int64_t));
+   clock_t t0 = clock();
+   for (size_t i = 0; i &lt; SIZE; i += STEP) {
+      array[i] &amp;= 1;  // Do something.  Anything.
+   }
+   clock_t t1 = clock();
+   printf("%d %f\n", STEP, 1000. * (t1 - t0) / CLOCKS_PER_SEC);
+}
+</code></pre>
+</div>
+
+<p data-fragment-index="1" class="fragment appear">
+How much faster when <code>STEP</code> is increased from 1 to 2, 4, 8, &#x2026;?
+</p>
+
+</section>
+<section id="slide-orgc7143ba">
+<h3 id="orgc7143ba"></h3>
+
+<div class="figure">
+<p><img src="line-size-plot.png" alt="line-size-plot.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-orge81af1b">
+<h3 id="orge81af1b">Cache Line</h3>
+<ul>
+<li class="fragment appear">The unit of data transfer between cache and main memory</li>
+<li class="fragment appear"><p>
+64 bytes on x86
+</p>
+<div class="org-src-container">
+
+<pre id="getconf"><code class="bash" >getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
+</code></pre>
+</div>
+
+<div class="org-src-container">
+
+<pre><code class="bash" >64
+64
+</code></pre>
+</div>
+
+<p class="fragment appear">
+&rarr; Load one <code>int</code>, get another 15 <del>for free</del>
+</p></li>
+<li class="fragment appear">Both cache and main memory can be thought of as being partitioned
+into cache lines</li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-org2190b42">
+<h2 id="org2190b42"></h2>
+<p>
+Same program as <a href="#/slide-access-times">before</a>, only the shuffle is removed
+</p>
+
+<div class="org-src-container">
+
+<pre><code class="C" >#define N 100000000  // 100 million
+
+struct elem {
+   struct elem *next;
+} array[SIZE];
+
+int main() {
+   for (size_t i = 0; i &lt; SIZE - 1; ++i) array[i].next = &amp;array[i + 1];
+   array[SIZE - 1].next = array;
+#ifndef BASELINE
+   int64_t dummy = 0;
+   struct elem *i = array;
+   for (size_t n = 0; n &lt; N; ++n) {
+      dummy += (int64_t)i;
+      i = i-&gt;next;
+   }
+   printf("%ld\n", dummy);
+#endif
+}
+</code></pre>
+</div>
+
+</section>
+<section id="slide-org5e0a757">
+<h3 id="org5e0a757"></h3>
+
+<div class="figure">
+<p><img src="seq-access-time-plot.png" alt="seq-access-time-plot.png" />
+</p>
+</div>
+<aside class="notes">
+<div>
+\begin{align*}
+             & (8\text{ B}) / (6\text{ cycles})\\
+  \implies{} & 8\text{ B} / \left(6\cdot \frac{1}{1.65\text{ GHz}}\right)\\
+         ={} & 8/6 \cdot 1.65\text{ GB/s} = 2.2\text{ GB/s}
+\end{align*}
+
+</div>
+<ul>
+<li>This is mostly in line with what the <a href="https://www.cs.virginia.edu/stream/">STREAM</a> benchmark tell me</li>
+<li>It's a long shot from the theoretical maximum though</li>
+
+</ul>
+
+</aside>
+
+</section>
+<section id="slide-org3ab7d95">
+<h3 id="org3ab7d95">Compared to Random Access</h3>
+<ul>
+<li>L1 is the same: 3 cycles</li>
+<li>L2 only takes 1 more cycle: 4 instead of 25</li>
+<li>Main memory takes about 6 cycles: ~3% of random access time</li>
+<li class="fragment appear"><i>Some</i> of this is better use of cache lines
+<ul>
+<li>Only one access for 8 elements &rarr; at best down to 12.5%</li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-org7b7431f">
+<h3 id="org7b7431f">Prefetching</h3>
+<ul>
+<li>Technique by which CPUs predict access patterns and preemptively push cache lines up the memory hierarchy</li>
+<li class="fragment appear">Predictable basically means linear</li>
+<li class="fragment appear">Done asynchronously to normal program execution<br />
+&rarr; Can almost completely hide main memory latency</li>
+
+</ul>
+
+<p class="fragment appear">
+Why isn't that happening?
+</p>
+
+</section>
+<section id="slide-org32f8c57">
+<h4 id="org32f8c57">Why isn't that happening?</h4>
+<p>
+Performance is still memory bound
+</p>
+
+<p class="fragment appear">
+&rarr; Measure after adding some expensive operations<br />
+(2 integer division each iteration)
+</p>
+</section>
+<section >
+
+
+<div class="figure">
+<p><img src="cpu-bound-seq-access-time-plot.png" alt="cpu-bound-seq-access-time-plot.png" />
+</p>
+</div>
+<aside class="notes">
+<blockquote nil>
+<p>
+Prefetching has one big weakness: it cannot cross page
+boundaries. &#x2013; Drepper
+</p>
+</blockquote>
+<ul>
+<li>Every 4 KiB, there's a TLB miss
+<ul>
+<li>\(4\text{ KiB} / 8\text {B} = 0.5\cdot 2^{10} = 512\)</li>
+<li>May cause several accesses that incur the full main memory latency</li>
+
+</ul></li>
+
+</ul>
+
+</aside>
+
+</section>
+</section>
+<section>
+<section id="slide-orga9f185a">
+<h2 id="orga9f185a">Locality of Reference</h2>
+<ul>
+<li>Cache-friendliness of code depends on two main properties:
+<ul>
+<li><i>Temporal locality</i></li>
+<li><i>Spatial locality</i></li>
+
+</ul></li>
+<li>Both are measures of how well the code's memory access pattern matches certain principles</li>
+
+</ul>
+
+</section>
+<section id="slide-org64f8693">
+<h3 id="org64f8693">Temporal Locality</h3>
+<ul>
+<li>One access suggests another
+<ul class="fragment T">
+<li>Once referenced memory locations tend to be used again within a short time frame</li>
+
+</ul></li>
+<li class="fragment appear">Without this, memory hierarchies would be pretty pointless
+<ul>
+<li>When a cache line is loaded but not accessed again before being evicted, the cache provided no benefit</li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-orgf394975">
+<h3 id="orgf394975">Spatial Locality</h3>
+<ol>
+<li>For each accessed memory location, nearby locations are used as well within a short time frame</li>
+<li>Memory is accessed sequentially</li>
+
+</ol>
+
+<p class="fragment appear">
+We have already seen in the last two sections that caches take advantage of both these principles by design:
+</p>
+<ol>
+<li class="fragment appear">Data is loaded in blocks; subsequent accesses to locations in an already loaded cache line are basically free</li>
+<li class="fragment appear">Cache lines from sequential access patterns are prefetched ahead of time</li>
+
+</ol>
+
+<aside class="notes">
+<p>
+Access to instructions inherently has good spatial locality since
+they are executed sequentially outside of jumps, and good temporal
+locality because of loops and function calls.
+</p>
+
+</aside>
+
+</section>
+</section>
+<section>
+<section id="slide-orge821070">
+<h2 id="orge821070"><code>std::vector</code> vs. <code>std::list</code></h2>
+<ul>
+<li>Initialize a bunch of C++ STL containers with random values</li>
+<li>Measure CPU time for summing all of them</li>
+<li>Both variants' time complexity is &Theta;(N)</li>
+<li>What is the performance difference when using <code>std::vector</code> compared to
+using <code>std::list</code>?</li>
+
+</ul>
+
+</section>
+<section >
+<div class="org-src-container">
+
+<pre><code class="cpp" >constexpr int N = 5000;
+
+int main() {
+   Container containers[N];
+   std::srand(std::time(nullptr));
+   // Append an average of 5000 random values to each container.
+   for (int i = 0; i &lt; N * 5000; ++i) {
+      containers[std::rand() % N].push_back(std::rand());
+   }
+
+   int sum = 0;
+   std::clock_t t0 = std::clock();
+   for (int m = 0; m &lt; N; ++m) {
+      for (int num : containers[m]) {
+	 sum += num;
+      }
+   }
+   std::clock_t t1 = std::clock();
+
+   // Also print the sum so the loop doesn't get optimized out.
+   std::cout &lt;&lt; sum &lt;&lt; '\n' &lt;&lt; (t1 - t0) &lt;&lt; '\n';
+}
+</code></pre>
+</div>
+
+</section>
+<section id="slide-orgd0d0134">
+<h3 id="orgd0d0134">Result</h3>
+<ul>
+<li>Computing the sum runs <code>158</code>
+times faster when using <code>std::vector</code></li>
+<li class="fragment appear">The list has <i>some</i> space overhead since it stores two pointers and
+some more overhead because of indirection</li>
+<li class="fragment appear">The more cache-friendly access pattern of <code>std::vector</code> is decisive, though</li>
+
+</ul>
+
+</section>
+<section id="slide-org8449b0e">
+<h3 id="org8449b0e">"True" OO Style</h3>
+<ul>
+<li class="fragment appear">Everything has a polymorphic class type</li>
+<li class="fragment appear">Now we can store different objects that only have the same base class in
+one container</li>
+<li class="fragment appear">We have to use pointers of course</li>
+<li class="fragment appear">Our flat vector or array just turned into this:
+<img src="oo-picture.png" alt="oo-picture.png" /></li>
+
+</ul>
+
+<aside class="notes">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Unrolled_linked_list">Unrolled linked list</a></li>
+<li><code>void _mm_prefetch(void *p, enum _mm_hint h)</code> from <code>&lt;xmmintrin.h&gt;</code>.</li>
+
+</ul>
+
+</aside>
+
+</section>
+</section>
+<section>
+<section id="slide-orgaee10ff">
+<h2 id="orgaee10ff">Abstract?</h2>
+<ul>
+<li>The hidden constants separating the time complexities of two &Theta;(N) algorithms can
+be quite big because of cache effects</li>
+<li class="fragment appear">Don't want to rely purely on measurements and intuition</li>
+
+</ul>
+
+<p class="fragment appear">
+&rarr; Refined abstract machine models?
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org44d93f1">
+<h2 id="org44d93f1">External Memory Model (EMM)</h2>
+<ul>
+<li>Two types of memory: <i>internal</i> and <i>external</i>
+<ul>
+<li>Only internal memory can be accessed directly, but its size is limited to M items</li>
+<li>External memory is unbounded, but can only be accessed indirectly using <i>I/Os</i>
+that load blocks of B items into internal memory</li>
+
+</ul></li>
+
+</ul>
+
+<aside class="notes">
+<p>
+The use of the term I/O here is somewhat non-standard. While it
+suggests external memory represents an HDD or SSD, it is not
+constrained which physical storages are associated with internal
+and external memory.
+</p>
+
+</aside>
+
+</section>
+<section >
+<ul>
+<li>For example, computing the sum of some input of size N has a lower bound of
+(&lceil;N/B&rceil; + 1) I/Os</li>
+<li>Summing the linked list probably takes almost N</li>
+<li>The difference between <code>std::vector</code> and <code>std::list</code> is at most B, the number of
+items a cache line can hold, which is 16</li>
+
+</ul>
+
+<p class="fragment appear">
+&rarr; Pretty far off from the actual difference but more informative than saying that
+computing the sum takes &Theta;(N) time for both
+</p>
+
+<aside class="notes">
+<p>
+Even with the simplifications made by the EMM, algorithmic analysis
+is usually only done asymptotically: the number of I/Os is expressed
+in terms of O(f(N, M, B)) or one of the related symbols.
+</p>
+
+</aside>
+
+</section>
+<section id="slide-org909b1af">
+<h3 id="org909b1af">Limitations of the EMM</h3>
+<p>
+While the concept of I/Os directly models cache lines, most other characteristics of
+memory hierarchies are ignored by the EMM
+</p>
+<ul class="fragment appear">
+<li>prefetching, or more generally the advantages of sequential access patterns</li>
+<li>multi-level caches</li>
+<li>the lack of direct control over the contents of caches</li>
+<li>associativity</li>
+<li>TLB</li>
+
+</ul>
+
+</section>
+<section >
+<p>
+More fundamentally, the model's premise is that I/Os are much more
+expensive than computation
+</p>
+<ul>
+<li>Plausible when accessing HDDs</li>
+<li>Not so much when transfering data between main memory and caches</li>
+
+</ul>
+
+<p>
+&rarr; Refined machine models which include more details?
+</p>
+<ul class="fragment appear">
+<li>Yes, but further complicates mathematical analysis</li>
+<li>Heuristics may be used</li>
+<li>Measurements are still key</li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-org3a92414">
+<h2 id="org3a92414">Cache-Oblivious Model (COM)</h2>
+<ul>
+<li>Concedes most of the aforementioned problems to empirical evaluation and further
+increases the level of abstraction</li>
+<li>Algorithms don't get to know M or B</li>
+<li>This means an algorithm that performs well in the COM performs well across the entire
+memory hierarchy</li>
+<li>Algorithms are COM-optimal when the asymptotic number of cache misses incurred matches
+the problem’s lower bound in the COM</li>
+<li>Uses the optimal replacement strategy of evicting the cache line that won't be accessed
+for the longest time in the future (Bélády’s Algorithm)</li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>Prokop proves that for many algorithms cache misses only increase
+increase by a constant factor when switching to a feasible
+replacement strategy</li>
+<li>Algorithms that are optimal in the COM can usually be transformed into algorithms that
+are optimal in the EMM (asymptotically)</li>
+
+</ul>
+<p>
+Other assumptions:
+</p>
+<ul>
+<li>Fully associative cache</li>
+<li>Two levels of memory</li>
+<li>Tall cache</li>
+
+</ul>
+
+</aside>
+
+</section>
+<section id="slide-org421122a">
+<h3 id="org421122a">Cache-Oblivious Matrix Transposition</h3>
+<p>
+Transpose an m &times; n matrix D out-of-place
+</p>
+
+<div class="org-src-container">
+
+<pre class="fragment appear"><code class="C" >for (int i = 0; i &lt; m; ++i)
+ for (int j = 0; j &lt; n; ++j)
+    E[j][i] = D[i][j];
+</code></pre>
+</div>
+
+<div style="padding:15px"/>
+
+<ul>
+<li class="fragment appear">Assuming row-major layout, the reads from D are sequential memory accesses</li>
+<li class="fragment appear">The writes to E aren't</li>
+<li class="fragment appear">For big enough matrices, this will cause &Theta;(mn) cache misses</li>
+<li class="fragment appear">This algorithm is cache-oblivious but not optimal</li>
+
+</ul>
+
+</section>
+<section id="slide-org6dc54a6">
+<h3 id="org6dc54a6">COM-Optimal Matrix Transposition</h3>
+<ul>
+<li>Divide and conquer</li>
+<li>Recursively divide the input matrix into two equal-sized submatrices along the greater
+dimension</li>
+<li><p>
+If m &ge; n (more rows than columns), let
+</p>
+<div>
+\begin{equation*}
+  D = \begin{bmatrix}
+    D_1\\
+    D_2
+  \end{bmatrix}
+\end{equation*}
+
+</div>
+<p>
+and use
+\(D^\mathsf{T} = \begin{bmatrix} D_1^\mathsf{T} & D_2^\mathsf{T} \end{bmatrix}\)
+to compute the transpose
+</p></li>
+<li>Eventually, pairs of input and output submatrices fit into cache at
+the same time, at which point it doesn’t matter in what order we
+access the elements</li>
+<li>\(\Theta(1 + mn / B)\) cache misses, which is optimal</li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>m &lt; n is analogous</li>
+<li>The recursion continues all the way down to 1 &times; 1 submatrices,
+but this doesn’t change the theoretical analysis</li>
+
+</ul>
+
+</aside>
+
+</section>
+<section id="slide-orgc3d173d">
+<h3 id="orgc3d173d"></h3>
+<p>
+Transpose the submatrix \((d_{ij})_{i\in I,\:j\in J}\)
+</p>
+<div class="org-src-container">
+
+<pre><code class="C" >void transpose(int I[2], int J[2], int D[m][n], int E[n][m]) {
+    int num_rows = 1 + I[1] - I[0];
+    int num_cols = 1 + J[1] - J[0];
+    if (num_cols == 1 &amp;&amp; num_rows == 1) {
+    E[J[0]][I[0]] = D[I[0]][J[0]];
+    } else if (num_cols &lt;= num_rows) {
+    // Horizontally slice D into two submatrices and recurse.
+    transpose((int[2]){I[0], I[0] + num_rows / 2 - 1}, J, D, E);
+    transpose((int[2]){I[0] + num_rows / 2, I[1]}, J, D, E);
+    } else { /* Vertically slice D analogously... */ }
+}
+</code></pre>
+</div>
+
+</section>
+<section id="slide-org7fe6c2f">
+<h3 id="org7fe6c2f"></h3>
+<p>
+Speedup Achieved by COM-Optimal Matrix Transposition
+<img src="xpose-speedup-plot.png" alt="xpose-speedup-plot.png" />
+</p>
+<aside class="notes">
+<p>
+When doing the measurements under more noisy conditions, the
+COM-optimal algorithm pulls ahead earlier and gives much bigger
+advantages.
+</p>
+
+</aside>
+
+</section>
+<section id="slide-orgcbf5d47">
+<h3 id="orgcbf5d47">Notable Values</h3>
+<p>
+252 and 304 MiB are the sizes before and after the COM-optimal algorithm pulls ahead
+</p>
+
+<div class="fragment appear">
+\begin{align*}
+    \frac{252\text{ MiB}}{4\text{ B}} = 63 \cdot 2^{20} \quad
+    \frac{304\text{ MiB}}{4\text{ B}} = 76 \cdot 2^{20}
+\end{align*}
+
+</div>
+
+<div style="padding:25px"/>
+<div class="fragment appear">
+\begin{align*}
+    \sqrt{63 \cdot 2^{20}} \approx 7.94 \cdot 2^{10} \quad
+    \sqrt{76 \cdot 2^{20}} \approx 8.72 \cdot 2^{10}
+\end{align*}
+
+</div>
+
+
+<div style="padding:25px"/>
+<div class="fragment appear">
+\begin{align*}
+    7.94 \cdot 64\text{ B} = 508.16\text{ KiB} \quad
+    8.72 \cdot 64\text{ B} = 558.08\text{ KiB}
+\end{align*}
+
+</div>
+
+</section>
+<section id="slide-org7cfe628">
+<h3 id="org7cfe628"></h3>
+<p>
+Further Speedup
+<img src="xpose-speedup-complicated-plot.png" alt="xpose-speedup-complicated-plot.png" />
+</p>
+
+</section>
+<section id="slide-org07f3c1f" data-background="http://orgmode.org/img/org-mode-unicorn-logo.svg" data-background-size="150px 160px" data-background-repeat="repeat" data-background-transition="slide">
+<h3 id="org07f3c1f"></h3>
+
+<div class="figure">
+<p><img src="https://stallman.org/saintignucius.jpg" alt="saintignucius.jpg" />
+</p>
+<p><span class="figure-number">Figure 6: </span>"I bless your computer, my child!"</p>
+</div>
+</section>
+</section>
+</div>
+</div>
+<script src="./reveal.js/lib/js/head.min.js"></script>
+<script src="./reveal.js/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: false,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: './reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+ { src: './reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+});
+</script>
+</body>
+</html>

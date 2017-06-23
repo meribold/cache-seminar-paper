@@ -21,3 +21,5 @@ _minted-paper
 .stignore
 ithare/vector
 ithare/list
+false-sharing/herb
+slides/slides.html

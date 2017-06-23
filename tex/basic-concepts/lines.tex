@@ -133,31 +133,11 @@ but only from addresses that are multiples of the cache line size.
 % [1]: https://stackoverflow.com/q/39182060 "Why isn't there a data bus which is as wide
 %      as the cache line size?"
 
-% XXX: hacks!  Explicit placement specifier without `t` (top) to prevent the figure from
-% interrupting the source code listing.
-\begin{figure}%[hbp]
+\begin{figure}
    \centering
-   \begin{tikzpicture}
-      \datavisualization
-      [scientific axes=clean,
-       x axis={logarithmic,
-               ticks={major at={1, 2, 4, 8 as \textbf{8}, 16, 64, 256, 1024},
-                      minor at={32, 128, 512}},
-               grid={at=8},
-               label={Step Size}, length=0.8\textwidth},
-       y axis={logarithmic,
-               % ticks={major={at={4, 16, 64, 256}}, minor={at={8, 32, 128}}},
-               % ticks={major={at={6, 12, 24, 48, 92, 184}}},
-               ticks={major at={5, 10, 20, 40, 80, 160, 320}},
-               grid=at ticks,
-               label={Processor Time (ms)}, length=6cm},
-       visualize as scatter,
-       scatter={style={mark=*, mark options={scale=.65}}}]
-         % See <https://tex.stackexchange.com/q/198323>.
-         data [read from file=line-size/line-size.csv, separator=\space];
-   \end{tikzpicture}
+   \input{tex/graphics/line-size-plot}
    \caption{Processor Times for Running \Cref{lst:line-size}}
    \label{fig:line-size}
 \end{figure}
 
-% vim: tw=90 sts=-1 sw=3 et fdm=marker
+% vim: ft=tex tw=90 sts=-1 sw=3 et fdm=marker

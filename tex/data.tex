@@ -7,6 +7,11 @@
 % figures on each page evenly.  This is a little ugly since it requires manually using
 % `\clearpage`.
 %
+% One problem I had with floats is that they don't spread out evenly on the section's
+% initial page (the one with the "Data" heading).  They only do it on the following pages
+% because those are special, dedicated float pages (those denoted by the `p` placement
+% specifier).
+%
 % [1]: https://tex.stackexchange.com/a/169092
 % [2]: https://tex.stackexchange.com/a/205257
 
@@ -20,46 +25,36 @@
 
 \vfill
 
-% \begin{table}[hp]
 \begin{center}
    \input{tex/graphics/access-time-table}
-   % \caption{Access Times for Random Reads}
    \captionof{table}{Access Times for Random Reads}
    \label{tab:access-times}
-% \end{table}
 \end{center}
 
 \vfill
 
-% \begin{table}[hp]
 \begin{center}
    \pgfplotstabletypeset[
       assign column name/.code=\pgfkeyssetvalue{/pgfplots/table/column name}{{{#1}}},
       array size vs cycles,
    ]{seq-access-times/access-times.csv}
-   % \caption{Access Times for Sequential Reads}
    \captionof{table}{Access Times for Sequential Reads}
    \label{tab:seq-access-times}
-% \end{table}
 \end{center}
 
 \vfill
 \clearpage
-% Add space add the start of the page.  See <https://tex.stackexchange.com/a/21436>.
+% Add space at the start of the page.  See <https://tex.stackexchange.com/a/21436>.
 \vspace*{\fill}%
 
-% \begin{figure}[hp]
 \begin{center}
-   \tikz \datavisualization[array size vs cycles plot]
-      data [read from file=seq-access-times/cpu-bound/access-times.csv, separator=\space];
-   % \caption{CPU-bound Sequential Read Access}
+   \input{tex/graphics/cpu-bound-seq-access-time-plot}
    \captionof{figure}{CPU-bound Sequential Read Access}
    \label{fig:seq-access-cpu-bound}
-% \end{figure}
 \end{center}
 
 \vfill
 
-% \FloatBarrier
+\FloatBarrier
 
 % vim: tw=90 sts=-1 sw=3 et fdm=marker

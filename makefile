@@ -136,7 +136,9 @@ seq-access-times/access-times.csv : out-files := $(seq-access-time-results)
 seq-access-times/cpu-bound/access-times.csv : out-files := $(cpu-bound-access-results)
 seq-access-times/step8/access-times.csv : out-files := $(seq8-access-time-results)
 
-graphics: slides/access-time-plot.png slides/access-time-table.png
+graphics: slides/access-time-plot.png slides/access-time-table.png \
+   slides/line-size-plot.png slides/seq-access-time-plot.png \
+   slides/cpu-bound-seq-access-time-plot.png
 
 # `convert(1)` is part of ImageMagick.  This type of conversion requires Ghostscript [1].
 #

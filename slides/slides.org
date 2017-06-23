@@ -6,6 +6,7 @@
 #+REVEAL_EXTRA_CSS: extra.css
 #+REVEAL_HIGHLIGHT_CSS: ir-black.css
 #+REVEAL_PLUGINS: (highlight notes)
+#+REVEAL_DEFAULT_FRAG_STYLE: appear
 #+OPTIONS: reveal_control:nil num:nil toc:nil reveal_title_slide:"<h1>%t</h1>"
 
 # XXX: this only works when `org-export-allow-bind-keywords` is non-`nil`.  See
@@ -13,42 +14,43 @@
 #+BIND: org-html-metadata-timestamp-format "%Y-%m-%d"
 
 * Hardware Caches
-  #+ATTR_REVEAL: :frag (roll-in)
-- Store subset of data from slower storage
-- Managed by hardware
-- Small
-- Fast
+  #+ATTR_REVEAL: :frag (appear)
+  - Store subset of data from slower storage
+  - Managed by hardware
+  - Small
+  - Fast
 
 ** Why though?
-   #+ATTR_REVEAL: :frag (roll-in)
- - Fast is pricey
- - Slow is cheap
- - Speed of light
+   #+ATTR_REVEAL: :frag (appear)
+   - Fast is pricey
+     - SRAM
+   - Slow is cheap
+     - DRAM
+   - Speed of light
 
 ** 
    \begin{align*}
-   \frac{3\cdot10^8 \text{ m/s}}{3 \text{ GHz}}
-   =10 \text{ cm}
+   \frac{3\cdot10^8 \text{ m/s}}{3 \text{ GHz}} = 10 \text{ cm}
    \end{align*}
-   #+ATTR_REVEAL: :frag (roll-in)
+   #+ATTR_REVEAL: :frag (appear)
    \rightarrow 5 cm add more than one cycle of latency.
 
 ** Types
-   #+ATTR_REVEAL: :frag (roll-in)
- - Data cache
- - Instruction cache
- - Translation lookaside buffer (TLB)
+   #+ATTR_REVEAL: :frag (appear)
+   - Data cache
+   - Instruction cache
+   - Translation lookaside buffer (TLB)
 
 ** Levels
-   #+ATTR_REVEAL: :frag (roll-in)
+   #+ATTR_REVEAL: :frag (appear)
    Typically 2 or 3 on x86
-   #+ATTR_REVEAL: :frag (roll-in)
- - L1d and L1i
-   - Split and private
- - L2
-   - Unified and shared
- - L3
-   - Unified and shared
+   #+ATTR_REVEAL: :frag (appear)
+   - L1d and L1i
+     - Split and private
+   - L2
+     - Unified and shared
+   - L3
+     - Unified and shared
 
 ** 
    #+CAPTION: Typical cache sizes on x86
@@ -59,7 +61,7 @@
 
 ** Reading cache sizes
    #+NAME: lscpu
-   #+BEGIN_SRC bash :exports both :results output code
+   #+BEGIN_SRC bash :exports both :results output code :eval no-export
    lscpu | grep 'L1\|L2\|L3'
    #+END_SRC
 
@@ -77,44 +79,261 @@
    | 3-4 | 10-12 | 30-70 |     100-150 |
 
 ** Verify?
-   #+ATTR_REVEAL: :frag (roll-in)
- - Randomly access memory
-   \to each access is to a different cache line
- - Measure CPU cycles with hardware performance counter
- - Vary working set size
+   #+ATTR_REVEAL: :frag (appear)
+   - Randomly access memory
+     \to each access is to a different cache line
+   - Measure CPU cycles with hardware performance counter
+   - Vary working set size
 ** 
-#+BEGIN_SRC C
-  #define N 100000000  // 100 million
+   :PROPERTIES:
+   :CUSTOM_ID: access-times
+   :END:
+   #+BEGIN_SRC C
+     #define N 100000000  // 100 million
 
-  struct elem {
-     struct elem *next;
-  } array[SIZE];
+     struct elem {
+	struct elem *next;
+     } array[SIZE];
 
-  int main() {
-     for (size_t i = 0; i < SIZE - 1; ++i) array[i].next = &array[i + 1];
-     array[SIZE - 1].next = array;
-     // Fisher-Yates shuffle the array.
-     for (size_t i = 0; i < SIZE - 1; ++i) {
-        size_t j = i + rand() % (SIZE - i);  // j is in [i, SIZE).
-        struct elem temp = array[i];  // Swap array[i] and array[j].
-        array[i] = array[j];
-        array[j] = temp;
+     int main() {
+	for (size_t i = 0; i < SIZE - 1; ++i) array[i].next = &array[i + 1];
+	array[SIZE - 1].next = array;
+	// Fisher-Yates shuffle the array.
+	for (size_t i = 0; i < SIZE - 1; ++i) {
+	   size_t j = i + rand() % (SIZE - i);  // j is in [i, SIZE).
+	   struct elem temp = array[i];  // Swap array[i] and array[j].
+	   array[i] = array[j];
+	   array[j] = temp;
+	}
+     #ifndef BASELINE
+	int64_t dummy = 0;
+	struct elem *i = array;
+	for (size_t n = 0; n < N; ++n) {
+	   dummy += (int64_t)i;
+	   i = i->next;
+	}
+	printf("%d\n", dummy);
+     #endif
      }
-  #ifndef BASELINE
-     int64_t dummy = 0;
-     struct elem *i = array;
-     for (size_t n = 0; n < N; ++n) {
-        dummy += (int64_t)i;
-        i = i->next;
-     }
-     printf("%d\n", dummy);
-  #endif
-  }
-#+END_SRC
+  #+END_SRC
+
 ** 
-   [[./access-time-plot.png]]
+   [[file:access-time-plot.png]]
    #+REVEAL: split
-   [[./access-time-table.png]]
+   [[file:access-time-table.png]]
+   #+BEGIN_NOTES
+   - The data suggests that keeping the /working set/ a process uses
+     during a time interval small can yield dramatic performance
+     improvements.
+     \to [[https://en.wikipedia.org/wiki/Loop_nest_optimization][Loop nest optimization (blocking)]]
+   #+END_NOTES
+
+** TLB
+   #+BEGIN_NOTES
+   Suppose a 4-level page table and an L1d access time of 3 cycles:
+   virtual to physical address translation takes at least 12 cycles
+   (that's without L1d misses).  Maybe draw an illustration on the
+   blackboard.
+   #+BEGIN_QUOTE
+   These accesses cannot be parallelized since they depend on the
+   previous lookup’s result.
+       -- Drepper
+   #+END_QUOTE
+   #+END_NOTES
+   #+BEGIN_COMMENT
+   #+END_COMMENT
+   - Caching page tables doesn't work out: page walk through multi-level table is still slow\\
+   - How to speed up physical to virtual address translation?
+     
+   #+ATTR_REVEAL: :frag t
+   \to Dedicated cache for *complete* virtual to physical address
+   correspondence of pages
+  
+*** 
+    #+BEGIN_SRC bash :exports both :results output code :eval no-export
+    grep TLB /proc/cpuinfo 
+    #+END_SRC
+
+    #+RESULTS:
+    #+BEGIN_SRC bash
+    TLB size	: 1024 4K pages
+    TLB size	: 1024 4K pages
+    #+END_SRC
+
+* Key Concepts
+
+* 
+  #+ATTR_REVEAL: :frag fade-out :frag_idx 1
+  Loop over an array will different increments
+   
+  # #+CAPTION: Loop over an array will different increments
+  #+BEGIN_SRC C
+    #define SIZE 67108864  // 64 * 1024 * 1024.  The array will be 512 MiB.
+
+    int main() {
+       int64_t* array = (int64_t*)calloc(SIZE, sizeof(int64_t));
+       clock_t t0 = clock();
+       for (size_t i = 0; i < SIZE; i += STEP) {
+	  array[i] &= 1;  // Do something.  Anything.
+       }
+       clock_t t1 = clock();
+       printf("%d %f\n", STEP, 1000. * (t1 - t0) / CLOCKS_PER_SEC);
+    }
+ #+END_SRC
+  
+  #+ATTR_REVEAL: :frag appear :frag_idx 1
+  How much faster when ~STEP~ is increased from 1 to 2, 4, 8, ...?
+
+** 
+   [[file:line-size-plot.png]]
+
+** Cache Line
+   #+ATTR_REVEAL: :frag (appear)
+   - The unit of data transfer between cache and main memory
+   - 64 bytes on x86
+     #+NAME: getconf
+     #+BEGIN_SRC bash :exports both :results output code :eval no-export
+     getconf LEVEL1_DCACHE_LINESIZE; getconf LEVEL2_CACHE_LINESIZE
+     #+END_SRC
+
+     #+RESULTS: getconf
+     #+BEGIN_SRC bash
+     64
+     64
+     #+END_SRC
+
+     #+ATTR_REVEAL: :frag t
+     \to Load one ~int~, get another 15 +for free+
+   - Both cache and main memory can be thought of as being partitioned
+     into cache lines
+
+* 
+  Same program as [[#access-times][before]], only the shuffle is removed
+   
+  #+BEGIN_SRC C
+    #define N 100000000  // 100 million
+
+    struct elem {
+       struct elem *next;
+    } array[SIZE];
+
+    int main() {
+       for (size_t i = 0; i < SIZE - 1; ++i) array[i].next = &array[i + 1];
+       array[SIZE - 1].next = array;
+    #ifndef BASELINE
+       int64_t dummy = 0;
+       struct elem *i = array;
+       for (size_t n = 0; n < N; ++n) {
+	  dummy += (int64_t)i;
+	  i = i->next;
+       }
+       printf("%ld\n", dummy);
+    #endif
+    }
+  #+END_SRC
+
+** 
+   [[file:seq-access-time-plot.png]]
+
+** Compared to random access
+   #+ATTR_REVEAL: :frag (none none none appear) :fragidx (- - - 1)
+   - L1 is the same: 3 cycles
+   - L2 only takes 1 more cycle: 4 instead of 25
+   - Main memory takes about 6 cycles: ~3% of random access time
+   - /Some/ of this is better use of cache lines
+     - Only one access for 8 elements \to at best down to 12.5%
+
+** Prefetching
+   #+ATTR_REVEAL: :frag (none appear)
+   - Technique by which CPUs predict access patterns and preemptively push cache lines up the memory hierarchy
+   - Predictable basically means linear
+   - Done asynchronously to normal program execution\\
+     \to Can almost completely hide main memory latency
+
+   #+ATTR_REVEAL: :frag t
+   Why isn't that happening?
+
+*** Why isn't that happening?
+    Performance is still memory bound
+    
+    #+ATTR_REVEAL: :frag t
+    \to Measure after adding some expensive operations\\
+    (2 integer division each iteration)
+    #+REVEAL: split
+    # #+CAPTION: CPU-Bound sequential access
+    [[file:cpu-bound-seq-access-time-plot.png]]
+    #+BEGIN_NOTES
+    #+BEGIN_QUOTE
+    Prefetching has one big weakness: it cannot cross page
+    boundaries. -- Drepper
+    #+END_QUOTE
+    - Every 4 KiB, there's a TLB miss
+      - \(4\text{ KiB} / 8\text {B} = 0.5\cdot 2^{10} = 512\)
+      - May cause several accesses that incur the full main memory latency
+    #+END_NOTES
+
+* Locality of Reference
+  - Cache-friendliness of code depends on two main properties:
+    - /Temporal locality/
+    - /Spatial locality/
+  - Both are measures of how well the code's memory access pattern matches certain principles
+
+** Temporal Locality
+   #+ATTR_REVEAL: :frag (none appear)
+   - One access suggests another
+     #+ATTR_REVEAL: :frag T
+     - Once referenced memory locations tend to be used again within a short time frame
+   - Without this, memory hierarchies would be pretty pointless
+     - When a cache line is loaded but not accessed again before being evicted, the cache provided no benefit
+
+** Spatial Locality
+   1. For each accessed memory location, nearby locations are used as well within a short time frame
+   2. Memory is accessed sequentially
+      
+   #+ATTR_REVEAL: :frag t
+   We have already seen in the last two sections that caches take advantage of both these principles by design:
+   #+ATTR_REVEAL: :frag (appear)
+   1. Data is loaded in blocks; subsequent accesses to locations in an already loaded cache line are basically free
+   2. Cache lines from sequential access patterns are prefetched ahead of time
+      
+   #+BEGIN_NOTES
+   Access to instructions inherently has good spatial locality since
+   they are executed sequentially outside of jumps, and good temporal
+   locality because of loops and function calls.
+   #+END_NOTES
+
+* ~std::vector~ vs. ~std::list~
+  - Initialize a bunch of C++ STL containers with random values
+  - Measure CPU time for summing all of them
+  - What is the performance difference when using ~std::vector~ compared to
+    using ~std::list~?
+    
+  #+REVEAL: split
+  #+BEGIN_SRC cpp
+    constexpr int N = 5000;
+
+    int main() {
+       Container containers[N];
+       std::srand(std::time(nullptr));
+       // Append an average of 5000 random values to each container.
+       for (int i = 0; i < N * 5000; ++i) {
+	  containers[std::rand() % N].push_back(std::rand());
+       }
+
+       int sum = 0;
+       std::clock_t t0 = std::clock();
+       for (int m = 0; m < N; ++m) {
+	  for (int num : containers[m]) {
+	     sum += num;
+	  }
+       }
+       std::clock_t t1 = std::clock();
+
+       // Also print the sum so the loop doesn't get optimized out.
+       std::cout << sum << '\n' << (t1 - t0) << '\n';
+    }
+  #+END_SRC
+
 ** 
    :PROPERTIES:
    :reveal_background: http://orgmode.org/img/org-mode-unicorn-logo.svg

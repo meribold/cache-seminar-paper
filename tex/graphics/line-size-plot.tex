@@ -1,0 +1,32 @@
+\documentclass[tikz, border=1pt]{standalone}
+
+\input{tex/datavis}
+
+% FIXME: DRY.
+\pgfkeys{%
+   /pgf/number format/.cd,
+   1000 sep={\,},
+   min exponent for 1000 sep=4,
+}
+
+\begin{document}
+\tikz \datavisualization[%
+   scientific axes=clean,
+   x axis={logarithmic,
+           ticks={major at={1, 2, 4, 8 as \textbf{8}, 16, 64, 256, 1024},
+                  minor at={32, 128, 512}},
+           grid={at=8},
+           label={Step Size}, length=0.8\textwidth},
+   y axis={logarithmic,
+           % ticks={major={at={4, 16, 64, 256}}, minor={at={8, 32, 128}}},
+           % ticks={major={at={6, 12, 24, 48, 92, 184}}},
+           ticks={major at={5, 10, 20, 40, 80, 160, 320}},
+           grid=at ticks,
+           label={Processor Time (ms)}, length=6cm},
+   visualize as scatter,
+   scatter={style={mark=*, mark options={scale=.65}}}]
+   % See <https://tex.stackexchange.com/q/198323>.
+   data [read from file=line-size/line-size.csv, separator=\space];
+\end{document}
+
+% vim: ft=tex tw=90 sts=-1 sw=3 et fdm=marker

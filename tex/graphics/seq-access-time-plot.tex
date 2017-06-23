@@ -1,0 +1,17 @@
+\documentclass[tikz, border=1pt]{standalone}
+
+\input{tex/datavis}
+
+% FIXME: DRY.
+\pgfkeys{%
+   /pgf/number format/.cd,
+   1000 sep={\,},
+   min exponent for 1000 sep=4,
+}
+
+\begin{document}
+\tikz \datavisualization[array size vs cycles plot]
+   data [read from file=seq-access-times/access-times.csv, separator=\space];
+\end{document}
+
+% vim: ft=tex tw=90 sts=-1 sw=3 et fdm=marker

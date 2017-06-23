@@ -138,7 +138,7 @@ seq-access-times/step8/access-times.csv : out-files := $(seq8-access-time-result
 
 graphics: slides/access-time-plot.png slides/access-time-table.png \
    slides/line-size-plot.png slides/seq-access-time-plot.png \
-   slides/cpu-bound-seq-access-time-plot.png
+   slides/cpu-bound-seq-access-time-plot.png slides/oo-picture.png
 
 # `convert(1)` is part of ImageMagick.  This type of conversion requires Ghostscript [1].
 #
@@ -147,6 +147,10 @@ graphics: slides/access-time-plot.png slides/access-time-table.png \
 # [3]: https://stackoverflow.com/q/2322750
 slides/%.png: graphics/%.pdf
 	convert -density 600 '$<' -background white -alpha remove '$@'
+
+# This one should retain transparency.
+# slides/oo-picture.png: graphics/oo-picture.pdf
+# 	 convert -density 600 '$<' '$@'
 
 graphics/%.pdf: tex/graphics/%.tex
 	latexmk -quiet -pdf '$<' -outdir=graphics

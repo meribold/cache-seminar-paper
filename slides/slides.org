@@ -305,6 +305,7 @@
 * ~std::vector~ vs. ~std::list~
   - Initialize a bunch of C++ STL containers with random values
   - Measure CPU time for summing all of them
+  - Both variants' time complexity is \Theta(N)
   - What is the performance difference when using ~std::vector~ compared to
     using ~std::list~?
     
@@ -334,6 +335,35 @@
     }
   #+END_SRC
 
+** Result
+   #+NAME: get-speedup
+   #+BEGIN_SRC bash :exports none :cache yes :results output verbatim
+   awk '{ print int($1+0.5) }' ../ithare/speedup.txt 
+   #+END_SRC
+
+   #+RESULTS[097a81ed9983614afb304cf7c0ebbe986c1411de]: get-speedup
+   : 152
+
+   #+ATTR_REVEAL: :frag (none appear)
+   - Computing the sum runs call_get-speedup() {{{results(=152=)}}}
+     times faster when using ~std::vector~
+   - The list has /some/ space overhead since it stores two pointers and
+     some more overhead because of indirection
+   - The more cache-friendly access pattern of ~std::vector~ is decisive, though
+
+** "True" OO Style
+   #+ATTR_REVEAL: :frag (appear) :fragidx
+   - Everything has a polymorphic class type
+   - Now we can store different objects that only have the same base class in
+     one container
+   - We have to use pointers of course
+   - Our flat vector or array just turned into this:
+     [[file:oo-picture.png]]
+   
+   #+ATTR_REVEAL: :frag t :fragidx 4
+   # #+REVEAL_HTML: <img "style=border: none;" src="oo-picture.png" alt="oo-picture.png" class="fragment appear visible current-fragment" data-fragment-index="4">
+
+* Abstract?
 ** 
    :PROPERTIES:
    :reveal_background: http://orgmode.org/img/org-mode-unicorn-logo.svg

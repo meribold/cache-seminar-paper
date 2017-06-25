@@ -60,7 +60,9 @@ x86 cache hierarchy consists of:
    % \item A level 2 cache for \say{both code and data}~\cite[31]{drepper2007}.
    \item A unified \gls{l2} cache of 256 to 512 KiB for each core.
    \item Often a unified \gls{l3} cache of 2 to 16 MiB shared between all cores.
-   \item TODO: Some \glspl{tlb} I guess.
+   \item One or more \glspl{tlb} per core.  \alts{They cache virtual-to-physical address
+      associations of memory pages, They cache associations of virtual to physical
+      addresses belonging to memory pages}.
 \end{itemize}
 
 % \subsection{Access Times}

@@ -1,4 +1,4 @@
-#+TITLE: Optimizing For Hardware Caches
+#+TITLE: Hardware Caches and Optimization
 #+AUTHOR: Lukas Waymann
 
 #+LANGUAGE: en

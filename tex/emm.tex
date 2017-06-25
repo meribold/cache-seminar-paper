@@ -52,7 +52,7 @@ input of size \(N\), like in \cref{lst:ithare}, is
   \(\left(\lceil\nicefrac{N}{B}\rceil + 1\right)\),
 }
 in the \gls{emm}.\footnote{%
-  TODO.
+   The data could occupy a small amount of a cache line at its start and end.
 }
 The linked list in that example probably takes almost \(N\) \acrshortpl{io},
 though, since consecutive \alts{nodes, elements} are unlikely to fall into the same cache

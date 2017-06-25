@@ -107,7 +107,7 @@ xpose/xpose-simple.csv: xpose/xpose.c
 	done
 
 # `NR>1` skips the first line.  See <https://unix.stackexchange.com/q/198065>.
-xpose/speedup.csv: xpose/xpose.csv xpose/xpose-simple.csv
+xpose/speedup.csv: xpose/xpose-simple.csv xpose/xpose.csv
 	paste $^ | awk 'BEGIN { print "x y" } NR>1 { print $$1/1024" "$$2/$$4 }' > '$@'
 
 ithare/list.out: ithare/list-vs-vector.cpp

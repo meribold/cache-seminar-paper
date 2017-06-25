@@ -257,17 +257,53 @@ Assuming \(D\) and \(E\) are stored in row-major layout (as they would be in the
    \(D^\mathsf{T}\) will be an \(n\times m\) matrix, so \(m\) is its number of columns.
 },
 every consecutive access will be to a different cache line.  If it has sufficiently many
-rows, no access will be to a cache line that is still loaded; once the inner loop
-completes, the cache line holding \alts[2]{\mintinline{c}{E[0][i]}, \(B_{0,i}\)} will have
-been evicted.%
-\footnote{%
-   assuming LRU or FIFO replacement % FIXME: but we use optimal replacement!
+rows,
+\alts{{%
+      the constant amount of lines that are still kept in cache by the optimal replacement
+      strategy once the inner loop completes and we need them again becomes
+      negligible.\x{\footnote{%
+         With LRU or FIFO replacement, ...
+   }}}, {
+      no access will be to a cache line that is still loaded; once the inner loop
+      completes, the cache line holding \alts[2]{\mintinline{c}{E[0][i]}, \(B_{0,i}\)}
+      will have been evicted.%
+      \footnote{%
+         assuming LRU or FIFO replacement % XXX: but we use optimal replacement!
+      }%
+   },
 }
 Therefore, this algorithm incurs \(\Theta(mn)\) cache misses.
 
 The algorithm is \alts{by definition, technically} already cache-oblivious since it
 doesn't use \(M\) or \(B\), but it is not optimal\x{ in the \gls{com}}.  We can do better
-with a divide-and-conquer approach.
+with a divide-and-conquer approach.  The idea is to recursively divide the input matrix
+\(D\) into two equal-sized submatrices along the greater dimension.  If \(m \geq n\) (more
+rows than columns), let
+\begin{equation*}
+   D = \begin{bmatrix}
+      D_1\\
+      D_2
+   \end{bmatrix}
+\end{equation*}
+and use \(D^\mathsf{T} = \begin{bmatrix} D_1^\mathsf{T} & D_2^\mathsf{T} \end{bmatrix}\)
+to compute the transpose.  If \(m < n\), analogously split \(D\) vertically.  Eventually,
+the submatrices will become small enough so that pairs of input and output submatrices fit
+into cache at the same time, at which point it doesn't matter in what order we access the
+elements.\footnote{%
+   No cache line will have to be evicted once loaded.
+}
+The recursion continues all the way down to \(1 \times 1\) submatrices, but this doesn't
+change the theoretical analysis.  According to
+\textcite[theorem 2 and 3, \ppno~19--21]{coa-thesis}
+% \textcite[theorem 2 and 3, \ppno~19\psqq]{coa-thesis}
+this algorithm incurs an optimal amount of \(\Theta(1 + mn / B)\) cache misses.
+% This reduces the amount of cache misses to \(\Theta(1 + \nicefrac{mn}{B})\) according to
+% \textcite[theorem 2, \ppno~19\psq]{coa-thesis}.
+
+In practice, the new algorithm performs as badly as one might expect from this excessive
+use of recursion.  \Cref{fig:xpose-speedup} gives the speedup compared to the
+straightforward implementation, which is usually faster.
+
 % The code may only be 72 characters wide (75 when counting the indentation that will be
 % stripped).  Note that the array arguments will decay to pointers.
 \begin{minted}[autogobble, mathescape]{c}
@@ -306,7 +342,7 @@ with a divide-and-conquer approach.
          data [read from file=xpose/speedup.csv, separator=\space];
    \end{tikzpicture}
    \caption{TODO}
-   \label{fig:TODO}
+   \label{fig:xpose-speedup}
 \end{figure}
 
 % > A cache-oblivious algorithm is simply a RAM algorithm; it is only the analysis that

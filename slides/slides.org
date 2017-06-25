@@ -234,6 +234,15 @@
 
 ** 
    [[file:seq-access-time-plot.png]]
+   #+BEGIN_NOTES
+   \begin{align*}
+                & (8\text{ B}) / (6\text{ cycles})\\
+     \implies{} & 8\text{ B} / \left(6\cdot \frac{1}{1.65\text{ GHz}}\right)\\
+            ={} & 8/6 \cdot 1.65\text{ GB/s} = 2.2\text{ GB/s}
+   \end{align*}
+   - This is mostly in line with what the [[https://www.cs.virginia.edu/stream/][STREAM]] benchmark tell me
+   - It's a long shot from the theoretical maximum though
+   #+END_NOTES
 
 ** Compared to random access
    #+ATTR_REVEAL: :frag (none none none appear) :fragidx (- - - 1)
@@ -362,6 +371,11 @@
    
    #+ATTR_REVEAL: :frag t :fragidx 4
    # #+REVEAL_HTML: <img "style=border: none;" src="oo-picture.png" alt="oo-picture.png" class="fragment appear visible current-fragment" data-fragment-index="4">
+   
+   #+BEGIN_NOTES
+   - [[https://en.wikipedia.org/wiki/Unrolled_linked_list][Unrolled linked list]]
+   - ~void _mm_prefetch(void *p, enum _mm_hint h)~ from ~<xmmintrin.h>~.
+   #+END_NOTES
 
 * Abstract?
 ** 

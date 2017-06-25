@@ -286,10 +286,10 @@ rows than columns), let
    \end{bmatrix}
 \end{equation*}
 and use \(D^\mathsf{T} = \begin{bmatrix} D_1^\mathsf{T} & D_2^\mathsf{T} \end{bmatrix}\)
-to compute the transpose.  If \(m < n\), analogously split \(D\) vertically.  Eventually,
-the submatrices will become small enough so that pairs of input and output submatrices fit
-into cache at the same time, at which point it doesn't matter in what order we access the
-elements.\footnote{%
+to compute the transpose.  If \(m < n\), analogously \alts{slice, split} \(D\) vertically.
+Eventually, the submatrices will become small enough so that pairs of input and output
+submatrices fit into cache at the same time, at which point it doesn't matter in what
+order we access the elements.\footnote{%
    No cache line will have to be evicted once loaded.
 }
 The recursion continues all the way down to \(1 \times 1\) submatrices, but this doesn't
@@ -299,39 +299,81 @@ change the theoretical analysis.  According to
 this algorithm incurs an optimal amount of \(\Theta(1 + mn / B)\) cache misses.
 % This reduces the amount of cache misses to \(\Theta(1 + \nicefrac{mn}{B})\) according to
 % \textcite[theorem 2, \ppno~19\psq]{coa-thesis}.
+\Cref{lst:xpose} shows my implementation in C.
 
-In practice, the new algorithm performs as badly as one might expect from this excessive
-use of recursion.  \Cref{fig:xpose-speedup} gives the speedup compared to the
-straightforward implementation, which is usually faster.
+% FIXME: get rid of this `center` hack and get the vertical spacing around listings with
+% captions to work in a better way.
+\begin{center}
+   % The code may only be 72 characters wide (78 when counting the indentation that will
+   % be stripped).  Note that the array arguments will decay to pointers.
+   \begin{minted}[autogobble, mathescape]{c}
+      // Transpose the submatrix $(d_{ij})_{i\in I,\:j\in J}$.
+      void transpose(int I[2], int J[2], int D[m][n], int E[n][m]) {
+         int num_rows = 1 + I[1] - I[0];
+         int num_cols = 1 + J[1] - J[0];
+         if (num_cols == 1 && num_rows == 1) {
+            E[J[0]][I[0]] = D[I[0]][J[0]];
+         } else if (num_cols <= num_rows) {
+            // Horizontally slice D into two submatrices and recurse.
+            transpose((int[2]){I[0], I[0] + num_rows / 2 - 1}, J, D, E);
+            transpose((int[2]){I[0] + num_rows / 2, I[1]}, J, D, E);
+         } else { /* Vertically slice D analogously... */ }
+      }
+   \end{minted}
+   % // Transpose the submatrix $(d_{ij}),\: i\in I, j\in J$.
+   % // Transpose the submatrix $(d_{ij})_{I_0<i<I_1, J_0<j<J_1}$
+   % // Transpose the submatrix $D\left[...\right]$
+   \captionof{listing}{\acrshort{com}-Optimal Matrix Transposition}
+   \label{lst:xpose}
+\end{center}
 
-% The code may only be 72 characters wide (75 when counting the indentation that will be
-% stripped).  Note that the array arguments will decay to pointers.
-\begin{minted}[autogobble, mathescape]{c}
-   // Transpose the submatrix $(d_{ij})_{i\in I,\:j\in J}$.
-   void transpose(int I[2], int J[2], int D[m][n], int E[n][m]) {
-      int num_rows = 1 + I[1] - I[0];
-      int num_cols = 1 + J[1] - J[0];
-      if (num_cols == 1 && num_rows == 1) {
-         E[J[0]][I[0]] = D[I[0]][J[0]];
-      } else if (num_cols <= num_rows) {
-         // Horizontally slice D into two submatrices and recurse.
-         transpose((int[2]){I[0], I[0] + num_rows / 2 - 1}, J, D, E);
-         transpose((int[2]){I[0] + num_rows / 2, I[1]}, J, D, E);
-      } else { /* Vertically slice D analogously... */ }
-   }
-\end{minted}
-% // Transpose the submatrix $(d_{ij}),\: i\in I, j\in J$.
-% // Transpose the submatrix $(d_{ij})_{I_0<i<I_1, J_0<j<J_1}$
-% // Transpose the submatrix $D\left[...\right]$
+% In practice, the new algorithm performs as badly as one might expect from this excessive
+% use of recursion.
+In practice, the new algorithm performs worse than the straightforward one for a lot of
+matrix sizes before it eventually pulls ahead.
+\alts{
+   {\Cref{fig:xpose-speedup} gives the speedups for square matrices of various sizes},
+   {\Cref{fig:xpose-speedup} gives the speedup compared to the straightforward
+   implementation\x{, which is usually faster}},
+}.
+The problem may be the excessive use of recursion.
 
-\begin{figure}
+Kumar works around this by \say{[stopping] the recursion when the problem size becomes
+less than a certain block size and then [using] the simple for loop implementation inside
+the block}~\cite[199--201]{afmh}.  This seems to \alts{compromise, jeopardize} the
+\alts{cache-obliviousness, cache-oblivious nature} of the algorithm.
+
+Perhaps cache-oblivious algorithms should be seen as a starting point for further
+optimizations that \alts{explicitly use the available information about the memory
+hierarchy of the machine a program runs on, take the properties of the target machine into
+account}.
+
+\x{
+Another approach may be to
+\alts{
+   {slice the matrix so that the split dimension becomes an even power of \(2\) for one of
+   the submatrices},
+   {\alts{split, divide} the matrix so that one of the resulting submatrices has a size
+   that is an even power of \(2\) along the dimension we split}
+}.
+\alts{
+   {Once a square submatrix whose dimensions are an even power of \(2\) is obtained, the
+   identical order of traversal that would result from the recursive algorithm can be
+   reproduced with a single loop.},
+   {Once a submatrix whose dimensions both are an even power of \(2\) is obtained, the
+   identical order of traversal that would result from the recursive algorithm can be
+   reproduced with loops relatively easily.},
+}
+}
+
+\begin{figure}[hbp]
    \centering
    \begin{tikzpicture}
       \datavisualization
       [scientific axes=clean,
        x axis={logarithmic,
                label={Matrix Size (\si{\mebi\byte})}, length=0.8\textwidth, ticks={
-                  major at={1, 2, 4, 8, 16, 32, 64, 128, 256},
+                  major at={1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024},
                },
               },
        y axis={include value=0, grid=at ticks, label={Speedup}, length=6cm,
@@ -341,7 +383,10 @@ straightforward implementation, which is usually faster.
        scatter={style={mark=*, mark options={scale=.65}}}]
          data [read from file=xpose/speedup.csv, separator=\space];
    \end{tikzpicture}
-   \caption{TODO}
+   \captionsetup{width=.9\linewidth} % FIXME: hacks!
+   \caption[Speedup Achieved by \acrshort{com}-Optimal Matrix Transposition]{Speedup
+   Achieved by \acrshort{com}-Optimal Matrix Transposition; the CPU time used by the
+   straightforward matrix transposition algorithm divided by that used by the optimal one}
    \label{fig:xpose-speedup}
 \end{figure}
 

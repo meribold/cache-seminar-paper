@@ -27,7 +27,7 @@ paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib \
    line-size/line-size.csv access-times/access-times.csv \
    seq-access-times/access-times.csv seq-access-times/cpu-bound/access-times.csv \
    ithare/speedup.txt xpose/speedup.csv
-   # xpose/xpose.csv xpose/xpose-simple.csv
+   # xpose/speedup-complicated.csv
    # seq-access-times/step8/access-times.csv array-sum/size-time.csv
 	latexmk -quiet -pdf -shell-escape '$(@:.pdf=.tex)'
 
@@ -92,7 +92,7 @@ line-size/line-size.csv: line-size/line-size.c
 
 xpose/xpose.csv: xpose/xpose.c
 	echo 'x y' > '$@'
-	for ((i=0; i<=32; i=i+1)); do \
+	for ((i=0; i<=37; i=i+1)); do \
 	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
 	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size '$<' && \
 	   sudo chrt -f 99 ./a.out >> '$@'; \
@@ -100,14 +100,28 @@ xpose/xpose.csv: xpose/xpose.c
 
 xpose/xpose-simple.csv: xpose/xpose.c
 	echo 'x y' > '$@'
-	for ((i=0; i<=32; i=i+1)); do \
+	for ((i=0; i<=37; i=i+1)); do \
 	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
 	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size -DSIMPLE '$<' && \
 	   sudo chrt -f 99 ./a.out >> '$@'; \
 	done
 
+# 512 * 1.1^31 = 9828
+# 512 * 1.1^34 = 13080
+# 512 KiB / 64 B = 8 * 2^10 = 8192
+xpose/xpose-complicated.csv: xpose/xpose.c
+	echo 'x y' > '$@'
+	for ((i=0; i<=37; i=i+1)); do \
+	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
+	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size -DCOMPLICATED '$<' && \
+	   sudo chrt -f 99 ./a.out >> '$@'; \
+	done
+
 # `NR>1` skips the first line.  See <https://unix.stackexchange.com/q/198065>.
 xpose/speedup.csv: xpose/xpose-simple.csv xpose/xpose.csv
+	paste $^ | awk 'BEGIN { print "x y" } NR>1 { print $$1/1024" "$$2/$$4 }' > '$@'
+
+xpose/speedup-complicated.csv: xpose/xpose-simple.csv xpose/xpose-complicated.csv
 	paste $^ | awk 'BEGIN { print "x y" } NR>1 { print $$1/1024" "$$2/$$4 }' > '$@'
 
 ithare/list.out: ithare/list-vs-vector.cpp

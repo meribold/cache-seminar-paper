@@ -9,8 +9,7 @@ presentation **[here][slides]**.
 Typical present-day CPUs have two or more levels of caches. This article provides basic
 insight into their operation and presents key architectural properties which suggest
 possible program optimizations.  The abstract external memory model (EMM) for memory
-hierarchies is explained and a small selection of algorithms developed for it are explored
-mathematically and empirically.
+hierarchies and the cache-oblivious model (COM) derived from it are presented briefly.
 
 [pdf]: TODO
 [slides]: https://meribold.github.io/cache-seminar-paper/slides/slides.html

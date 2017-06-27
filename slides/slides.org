@@ -146,7 +146,7 @@
    - How to speed up physical to virtual address translation?
      
    #+ATTR_REVEAL: :frag t
-   \to Dedicated cache for *complete* virtual to physical address
+   \to Dedicated cache for *complete* virtual-to-physical address
    correspondence of pages
   
 *** 
@@ -244,8 +244,8 @@
    - It's a long shot from the theoretical maximum though
    #+END_NOTES
 
-** Compared to random access
-   #+ATTR_REVEAL: :frag (none none none appear) :fragidx (- - - 1)
+** Compared to Random Access
+   #+ATTR_REVEAL: :frag (none none none appear)
    - L1 is the same: 3 cycles
    - L2 only takes 1 more cycle: 4 instead of 25
    - Main memory takes about 6 cycles: ~3% of random access time
@@ -361,7 +361,7 @@
    - The more cache-friendly access pattern of ~std::vector~ is decisive, though
 
 ** "True" OO Style
-   #+ATTR_REVEAL: :frag (appear) :fragidx
+   #+ATTR_REVEAL: :frag (appear)
    - Everything has a polymorphic class type
    - Now we can store different objects that only have the same base class in
      one container
@@ -378,6 +378,188 @@
    #+END_NOTES
 
 * Abstract?
+  #+ATTR_REVEAL: :frag (none appear)
+  - The hidden constants separating the time complexities of two \Theta(N) algorithms can
+    be quite big because of cache effects
+  - Don't want to rely purely on measurements and intuition
+
+  #+ATTR_REVEAL: :frag t
+  \to Refined abstract machine models?
+
+* External Memory Model (EMM)
+  - Two types of memory: /internal/ and /external/
+    - Only internal memory can be accessed directly, but its size is limited to M items
+    - External memory is unbounded, but can only be accessed indirectly using /I/Os/
+      that load blocks of B items into internal memory
+
+  #+BEGIN_NOTES
+  The use of the term I/O here is somewhat non-standard. While it
+  suggests external memory represents an HDD or SSD, it is not
+  constrained which physical storages are associated with internal
+  and external memory.
+  #+END_NOTES
+   
+  #+REVEAL: split
+  - For example, computing the sum of some input of size N has a lower bound of
+    (\lceil{}N/B\rceil + 1) I/Os
+  - Summing the linked list probably takes almost N
+  - The difference between ~std::vector~ and ~std::list~ is at most B, the number of
+    items a cache line can hold, which is 16
+       
+ #+ATTR_REVEAL: :frag t
+ \to Pretty far off from the actual difference but more informative than saying that
+ computing the sum takes \Theta(N) time for both
+  
+ #+BEGIN_NOTES
+ Even with the simplifications made by the EMM, algorithmic analysis
+ is usually only done asymptotically: the number of I/Os is expressed
+ in terms of O(f(N, M, B)) or one of the related symbols.
+ #+END_NOTES
+
+** Limitations of the EMM
+   While the concept of I/Os directly models cache lines, most other characteristics of
+   memory hierarchies are ignored by the EMM
+   #+ATTR_REVEAL: :frag t
+   - prefetching, or more generally the advantages of sequential access patterns
+   - multi-level caches
+   - the lack of direct control over the contents of caches
+   - associativity
+   - TLB
+
+   #+REVEAL: split
+   More fundamentally, the model's premise is that I/Os are much more
+   expensive than computation
+   - Plausible when accessing HDDs
+   - Not so much when transfering data between main memory and caches
+
+   \to Refined machine models which include more details?
+   #+ATTR_REVEAL: :frag t
+   - Yes, but further complicates mathematical analysis
+   - Heuristics may be used
+   - Measurements are still key
+
+* Cache-Oblivious Model (COM)
+  - Concedes most of the aforementioned problems to empirical evaluation and further
+    increases the level of abstraction
+  - Algorithms don't get to know M or B
+  - This means an algorithm that performs well in the COM performs well across the entire
+    memory hierarchy
+  - Algorithms are COM-optimal when the asymptotic number of cache misses incurred matches
+    the problem’s lower bound in the COM
+    # #+REVEAL: split
+  - Uses the optimal replacement strategy of evicting the cache line that won't be accessed
+    for the longest time in the future (Bélády’s Algorithm)
+  #+BEGIN_NOTES
+  - Prokop proves that for many algorithms cache misses only increase
+    increase by a constant factor when switching to a feasible
+    replacement strategy
+  - Algorithms that are optimal in the COM can usually be transformed into algorithms that
+    are optimal in the EMM (asymptotically)
+  Other assumptions:
+  - Fully associative cache
+  - Two levels of memory
+  - Tall cache
+  #+END_NOTES
+
+** Cache-Oblivious Matrix Transposition
+   Transpose an m \times n matrix D out-of-place
+   
+   #+ATTR_REVEAL: :frag t
+   #+BEGIN_SRC C
+     for (int i = 0; i < m; ++i)
+      for (int j = 0; j < n; ++j)
+	 E[j][i] = D[i][j];
+   #+END_SRC
+   
+   # XXX: evil hacks!
+   #+REVEAL_HTML: <div style="padding:15px"/>
+   
+   #+ATTR_REVEAL: :frag (appear) :fragidx (1 1 1 2)
+   - Assuming row-major layout, the reads from D are sequential memory accesses
+   - The writes to E aren't
+   - For big enough matrices, this will cause \Theta(mn) cache misses
+   - This algorithm is cache-oblivious but not optimal
+
+** COM-Optimal Matrix Transposition
+   - Divide and conquer
+   - Recursively divide the input matrix into two equal-sized submatrices along the greater
+     dimension
+   - If m \geq n (more rows than columns), let
+     \begin{equation*}
+       D = \begin{bmatrix}
+         D_1\\
+         D_2
+       \end{bmatrix}
+     \end{equation*}
+     and use
+     \(D^\mathsf{T} = \begin{bmatrix} D_1^\mathsf{T} & D_2^\mathsf{T} \end{bmatrix}\)
+     to compute the transpose
+   - Eventually, pairs of input and output submatrices fit into cache at
+     the same time, at which point it doesn’t matter in what order we
+     access the elements
+   - \(\Theta(1 + mn / B)\) cache misses, which is optimal
+   #+BEGIN_NOTES
+   - m < n is analogous
+   - The recursion continues all the way down to 1 \times 1 submatrices,
+     but this doesn’t change the theoretical analysis
+   #+END_NOTES
+   
+** 
+   Transpose the submatrix \((d_{ij})_{i\in I,\:j\in J}\)
+   #+BEGIN_SRC C
+     void transpose(int I[2], int J[2], int D[m][n], int E[n][m]) {
+	 int num_rows = 1 + I[1] - I[0];
+	 int num_cols = 1 + J[1] - J[0];
+	 if (num_cols == 1 && num_rows == 1) {
+	 E[J[0]][I[0]] = D[I[0]][J[0]];
+	 } else if (num_cols <= num_rows) {
+	 // Horizontally slice D into two submatrices and recurse.
+	 transpose((int[2]){I[0], I[0] + num_rows / 2 - 1}, J, D, E);
+	 transpose((int[2]){I[0] + num_rows / 2, I[1]}, J, D, E);
+	 } else { /* Vertically slice D analogously... */ }
+     }
+   #+END_SRC
+   
+** 
+   # #+CAPTION: Speedup Achieved by COM-Optimal Matrix Transposition
+   Speedup Achieved by COM-Optimal Matrix Transposition
+   [[file:xpose-speedup-plot.png]]
+   #+BEGIN_NOTES
+   When doing the measurements under more noisy conditions, the
+   COM-optimal algorithm pulls ahead earlier and gives much bigger
+   advantages.
+   #+END_NOTES
+
+** Notable Values
+   252 and 304 MiB are the sizes before and after the COM-optimal algorithm pulls ahead
+    
+   #+ATTR_REVEAL: :frag t
+   \begin{align*}
+       \frac{252\text{ MiB}}{4\text{ B}} = 63 \cdot 2^{20} \quad
+       \frac{304\text{ MiB}}{4\text{ B}} = 76 \cdot 2^{20}
+   \end{align*}
+    
+   # XXX: evil hacks!
+   #+REVEAL_HTML: <div style="padding:25px"/>
+   #+ATTR_REVEAL: :frag t
+   \begin{align*}
+       \sqrt{63 \cdot 2^{20}} \approx 7.94 \cdot 2^{10} \quad
+       \sqrt{76 \cdot 2^{20}} \approx 8.72 \cdot 2^{10}
+   \end{align*}
+    
+    
+   # XXX: evil hacks!
+   #+REVEAL_HTML: <div style="padding:25px"/>
+   #+ATTR_REVEAL: :frag t
+   \begin{align*}
+       7.94 \cdot 64\text{ B} = 508.16\text{ KiB} \quad
+       8.72 \cdot 64\text{ B} = 558.08\text{ KiB}
+   \end{align*}
+
+** 
+   Further Speedup
+   [[file:xpose-speedup-complicated-plot.png]]
+
 ** 
    :PROPERTIES:
    :reveal_background: http://orgmode.org/img/org-mode-unicorn-logo.svg

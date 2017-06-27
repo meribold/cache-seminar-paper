@@ -1,0 +1,29 @@
+\documentclass[tikz, border=1pt]{standalone}
+
+\input{tex/datavis}
+
+% FIXME: DRY.
+\usepackage[binary-units]{siunitx} % Load `\kibi` and `\mebi` etc. (`binary-units`).
+
+% FIXME: DRY.
+\pgfkeys{%
+   /pgf/number format/.cd,
+   1000 sep={\,},
+   min exponent for 1000 sep=4,
+}
+
+\begin{document}
+\tikz \datavisualization[scientific axes=clean, x axis={
+   logarithmic, label={Matrix Size (\si{\mebi\byte})}, length=0.8\textwidth, ticks={
+         major at={1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024},
+      },
+   }, y axis={
+      include value=0, grid=at ticks, label={Speedup}, length=6cm,
+   % ticks={major also at={1}}
+   },
+   visualize as scatter,
+   scatter={style={mark=*, mark options={scale=.65}}}]
+   data [read from file=xpose/speedup.csv, separator=\space];
+\end{document}
+
+% vim: ft=tex tw=90 sts=-1 sw=3 et fdm=marker

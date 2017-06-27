@@ -53,8 +53,11 @@ number of} runs; all noise is additive (TODO: not the one caused by the cache be
 % See [7].
 \end{comment}
 
-All programs were compiled and run on Linux using the \gls{gcc} with
-\mintinline{text}{-O2} (unless noted otherwise) and \mintinline{text}{-march=native}.
+All programs were compiled and run on Linux using the \gls{gcc}\footnote{%
+   in version 6.3.1
+}
+with \mintinline{text}{-O2} or \mintinline{text}{-O3} and
+\mintinline{text}{-march=native}.
 % Additionally,
 I disabled CPU frequency scaling with \mintinline{text}{cpupower(1)},
 % See <https://wiki.archlinux.org/index.php/CPU_frequency_scaling>.

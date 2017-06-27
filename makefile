@@ -26,10 +26,10 @@ texfiles := $(shell find -name '*.tex')
 paper.pdf: $(texfiles) $(wildcard tex/*.tex) paper.bib \
    line-size/line-size.csv access-times/access-times.csv \
    seq-access-times/access-times.csv seq-access-times/cpu-bound/access-times.csv \
-   ithare/speedup.txt xpose/speedup.csv
-   # xpose/speedup-complicated.csv
+   ithare/speedup.txt xpose/speedup.csv xpose/speedup-complicated.csv
    # seq-access-times/step8/access-times.csv array-sum/size-time.csv
 	latexmk -quiet -pdf -shell-escape '$(@:.pdf=.tex)'
+	touch '$@'
 
 # 1 KiB to 128 MiB.
 working-set-sizes := $(shell for ((i=7; i<=24; i=i+1)); do printf "$$((8*2**i)) "; done)
@@ -92,7 +92,7 @@ line-size/line-size.csv: line-size/line-size.c
 
 xpose/xpose.csv: xpose/xpose.c
 	echo 'x y' > '$@'
-	for ((i=0; i<=37; i=i+1)); do \
+	for ((i=0; i<=38; i=i+1)); do \
 	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
 	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size '$<' && \
 	   sudo chrt -f 99 ./a.out >> '$@'; \
@@ -100,7 +100,7 @@ xpose/xpose.csv: xpose/xpose.c
 
 xpose/xpose-simple.csv: xpose/xpose.c
 	echo 'x y' > '$@'
-	for ((i=0; i<=37; i=i+1)); do \
+	for ((i=0; i<=38; i=i+1)); do \
 	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
 	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size -DSIMPLE '$<' && \
 	   sudo chrt -f 99 ./a.out >> '$@'; \
@@ -111,7 +111,7 @@ xpose/xpose-simple.csv: xpose/xpose.c
 # 512 KiB / 64 B = 8 * 2^10 = 8192
 xpose/xpose-complicated.csv: xpose/xpose.c
 	echo 'x y' > '$@'
-	for ((i=0; i<=37; i=i+1)); do \
+	for ((i=0; i<=38; i=i+1)); do \
 	   size=$$(awk '{ printf "%.0f", 512*1.1^$$1 }' <<< $$i); \
 	   $(CC) -std=c11 -Wall -Wextra -march=native -O3 -Dm=$$size -Dn=$$size -DCOMPLICATED '$<' && \
 	   sudo chrt -f 99 ./a.out >> '$@'; \
@@ -121,7 +121,7 @@ xpose/xpose-complicated.csv: xpose/xpose.c
 xpose/speedup.csv: xpose/xpose-simple.csv xpose/xpose.csv
 	paste $^ | awk 'BEGIN { print "x y" } NR>1 { print $$1/1024" "$$2/$$4 }' > '$@'
 
-xpose/speedup-complicated.csv: xpose/xpose-simple.csv xpose/xpose-complicated.csv
+xpose/speedup-complicated.csv: xpose/xpose.csv xpose/xpose-complicated.csv
 	paste $^ | awk 'BEGIN { print "x y" } NR>1 { print $$1/1024" "$$2/$$4 }' > '$@'
 
 ithare/list.out: ithare/list-vs-vector.cpp
@@ -152,7 +152,8 @@ seq-access-times/step8/access-times.csv : out-files := $(seq8-access-time-result
 
 graphics: slides/access-time-plot.png slides/access-time-table.png \
    slides/line-size-plot.png slides/seq-access-time-plot.png \
-   slides/cpu-bound-seq-access-time-plot.png slides/oo-picture.png
+   slides/cpu-bound-seq-access-time-plot.png slides/oo-picture.png \
+   slides/xpose-speedup-plot.png slides/xpose-speedup-complicated-plot.png
 
 # `convert(1)` is part of ImageMagick.  This type of conversion requires Ghostscript [1].
 #
@@ -168,6 +169,7 @@ slides/%.png: graphics/%.pdf
 
 graphics/%.pdf: tex/graphics/%.tex
 	latexmk -quiet -pdf '$<' -outdir=graphics
+	touch '$@'
 
 # See <https://www.gnu.org/software/make/manual/html_node/Chained-Rules.html>.
 .PRECIOUS: graphics/%.pdf

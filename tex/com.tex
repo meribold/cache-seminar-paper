@@ -159,8 +159,12 @@ However, \citeauthor{coa-thesis} proves that for many algorithms\footnote{%
    % Halving the cache size only increases the number of cache misses by a constant
    % factor?
 }
-it only increases cache misses by a constant factor compared to various feasible
-replacement strategies%
+\alts{
+   cache misses only increase by a constant factor when switching to a feasible
+   replacement strategy,
+   it only increases cache misses by a constant factor compared to various feasible
+   replacement strategies,
+}%
 % ~\cite[lemma 12, \pno~10]{coa-paper}.%
 % ~\cite[corollary 13, \pno~10]{coa-paper}.%
 ~\cite[corollary 19, \pno~46]{coa-thesis}.%
@@ -367,27 +371,21 @@ Another approach may be to
 
 \begin{figure}[hbp]
    \centering
-   \begin{tikzpicture}
-      \datavisualization
-      [scientific axes=clean,
-       x axis={logarithmic,
-               label={Matrix Size (\si{\mebi\byte})}, length=0.8\textwidth, ticks={
-                  major at={1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024},
-               },
-              },
-       y axis={include value=0, grid=at ticks, label={Speedup}, length=6cm,
-         % ticks={major also at={1}}
-       },
-       visualize as scatter,
-       scatter={style={mark=*, mark options={scale=.65}}}]
-         data [read from file=xpose/speedup.csv, separator=\space];
-   \end{tikzpicture}
+   \input{tex/graphics/xpose-speedup-plot}
    \captionsetup{width=.9\linewidth} % FIXME: hacks!
    \caption[Speedup Achieved by \acrshort{com}-Optimal Matrix Transposition]{Speedup
    Achieved by \acrshort{com}-Optimal Matrix Transposition; the CPU time used by the
    straightforward matrix transposition algorithm divided by that used by the optimal one}
    \label{fig:xpose-speedup}
 \end{figure}
+
+% \begin{figure}[hbp]
+%    \centering
+%    \input{tex/graphics/xpose-speedup-complicated-plot}
+%    \captionsetup{width=.9\linewidth} % FIXME: hacks!
+%    \caption{TODO}
+%    \label{fig:xpose-speedup-complicated}
+% \end{figure}
 
 % > A cache-oblivious algorithm is simply a RAM algorithm; it is only the analysis that
 % > differs.

@@ -11,7 +11,7 @@ insight into their operation and presents key architectural properties which sug
 possible program optimizations.  The abstract external memory model (EMM) for memory
 hierarchies and the cache-oblivious model (COM) derived from it are presented briefly.
 
-[pdf]: /../pdf/paper.pdf
+[pdf]: https://meribold.github.io/cache-seminar-paper/paper.pdf
 [slides]: https://meribold.github.io/cache-seminar-paper/slides/slides.html
 [org-reveal]: https://github.com/yjwen/org-reveal
 

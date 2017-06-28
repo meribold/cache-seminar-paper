@@ -1,4 +1,4 @@
-# Basics of Hardware Cache Optimization
+# Hardware Caches and Optimization
 
 A seminar paper about hardware caches and how to use them effectively.  You can download
 the **[paper here][pdf]** and view slides created with [org-reveal] for an accompanying

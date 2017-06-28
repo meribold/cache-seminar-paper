@@ -2,7 +2,8 @@
 
 A seminar paper about hardware caches and how to use them effectively.  You can download
 the **[paper here][pdf]** and view slides created with [org-reveal] for an accompanying
-presentation **[here][slides]**.
+presentation **[here][slides]** (hit <kbd>Space</kbd> or <kbd>N</kbd> to move to the next
+slide).
 
 ## Abstract
 

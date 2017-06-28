@@ -1,11 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <title>Hardware Caches</title>
-   </head>
-   <body>
-       <a href="slides/slides.html">Slides</a>
-   </body>
-</html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hardware Caches and Optimization</title>
+<style>
+   body {
+      margin: 1em auto;
+      max-width: 40em;
+      padding: 0.62em;
+      font: 1.2em/1.62 sans-serif;
+   }
+   h1, h2, h3 {
+      line-height: 1.2;
+   }
+   @media print{
+      body{
+	 max-width: none
+      }
+   }
+</style>
+<article>
+   <header>
+      <h1>Hardware Caches and Optimization</h1>
+   </header>
+   <p>
+   Website for a seminar paper about hardware caches and how to use them effectively.  You
+   can download the
+   <a href="https://meribold.github.io/cache-seminar-paper/paper.pdf"><strong>paper here</strong></a> and
+   view slides created with <a href="https://github.com/yjwen/org-reveal">org-reveal</a>
+   for an accompanying presentation
+   <a href="https://meribold.github.io/cache-seminar-paper/slides/slides.html"><strong>here</strong></a>
+   (hit <em>Space</em> or <em>N</em> to move to the next slide).
+   </p>
+   <h3>Abstract</h3>
+   <p>
+   Typical present-day CPUs have two or more levels of caches. This article provides basic
+   insight into their operation and presents key architectural properties which suggest
+   possible program optimizations. The abstract external memory model (EMM) for memory
+   hierarchies and the cache-oblivious model (COM) derived from it are presented briefly.
+   </p>
+</article>
 
 <!-- vim: set tw=90 sts=-1 sw=3 et: -->
